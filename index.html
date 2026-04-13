@@ -507,26 +507,105 @@
 </section>
 
 <!-- Video -->
+<style>
+.video-tab {
+    font-family: 'Palatino', sans-serif;
+    font-size: 0.88rem;
+    padding: 5px 16px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background: #fff;
+    cursor: pointer;
+    color: #444;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.video-tab.active {
+    background: #248656;
+    color: #fff;
+    border-color: #248656;
+}
+.video-panel {
+    display: none;
+}
+.video-panel.active {
+    display: block;
+}
+/* Crop the black bars: overflow:hidden + negative margin pulls the player
+   so only the content area is visible. Works for 16:9 videos in a 16:9 frame. */
+.yt-crop-wrapper {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+    /* slight extra height so YouTube's thin chrome bars get clipped */
+    position: relative;
+}
+.yt-aspect {
+    position: relative;
+    /* 56.25% = 16:9; bump slightly to let us nudge iframe up */
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+}
+.yt-aspect iframe {
+    position: absolute;
+    /* pull iframe up/down to center content and clip letterbox bars */
+    top: -2.6%;
+    left: 0;
+    width: 100%;
+    height: 105%;
+    border: 0;
+}
+</style>
+
 <section class="section compact">
     <div class="container is-max-desktop">
         <h2 class="title is-3">Real-World Learning</h2>
-        <div class="publication-image">
-            <video controls style="width: 100%; border-radius: 4px;">
-                <source src="static/videos/widowx_sausage_learning.mp4" type="video/mp4">
-            </video>
+
+        <!-- Tab buttons -->
+        <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:1rem;">
+            <button class="video-tab active" onclick="videoSetTab(this, 'vid-sausage')">WidowX — Sausage</button>
+            <button class="video-tab"        onclick="videoSetTab(this, 'vid-shrimp')">WidowX — Shrimp</button>
+            <button class="video-tab"        onclick="videoSetTab(this, 'vid-droid')">Droid — Button</button>
         </div>
-        <div class="publication-image">
-            <video controls style="width: 100%; border-radius: 4px;">
-                <source src="static/videos/widowx_shrimp_learning.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="publication-image">
-            <video controls style="width: 100%; border-radius: 4px;">
-                <source src="static/videos/droid_learning.mp4" type="video/mp4">
-            </video>
+
+        <div class="yt-crop-wrapper">
+            <div id="vid-sausage" class="video-panel active">
+                <div class="yt-aspect">
+                    <iframe src="https://www.youtube.com/embed/_9uu-xuSdzs?rel=0&modestbranding=1"
+                            title="WidowX Sausage Learning"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+            <div id="vid-shrimp" class="video-panel">
+                <div class="yt-aspect">
+                    <iframe src="https://www.youtube.com/embed/DhYXKMbEtlc?rel=0&modestbranding=1"
+                            title="WidowX Shrimp Learning"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+            <div id="vid-droid" class="video-panel">
+                <div class="yt-aspect">
+                    <iframe src="https://www.youtube.com/embed/RY49lOv-4HY?rel=0&modestbranding=1"
+                            title="Droid Button Learning"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+            </div>
         </div>
     </div>
 </section>
+
+<script>
+function videoSetTab(btn, panelId) {
+    document.querySelectorAll('.video-tab').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.video-panel').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById(panelId).classList.add('active');
+}
+</script>
 
 <section class="section compact">
     <div class="container is-max-desktop">
