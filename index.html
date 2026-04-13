@@ -230,8 +230,11 @@
         <div class="content has-text-justified">
             <p>
                 We present a <i>unified framework</i> for robot policy <b>pre-training</b> and <b>RL fine-tuning</b> that signifcantly improves fine-tuning sample efficiency RL.
-                <strong>Context-Smoothed Pre-training (CSP)</strong> widens action coverage by adding diffusion noise to policy inputs, while <strong>Timestep-Modulated Reinforcement Learning (TMRL)</strong> adjusts conditioning during fine-tuning to improve exploration.
-                Together, they deliver strong gains across diverse policy inputs and enable successful real-world fine-tuning on complex manipulation tasks in under one hour.
+                <ul>
+                    <li><strong>Context-Smoothed Pre-training (CSP)</strong> widens action coverage during pre-training by adding diffusion noise to policy conditioning <i>c</i>. This enables <i>interpolation</i> between the conditional action distribution p(a&nbsp;|&nbsp;c) and the marginal p(a).</li>
+                    <li><strong>Timestep-Modulated Reinforcement Learning (TMRL)</strong> enables an RL policy to <i>dynamically</i> interpolate between p(a&nbsp;|&nbsp;c) and p(a) during fine-tuning by exposing a <i>timestep</i> control variable. </li>
+                </ul>
+                Together, they deliver strong RL sample efficiency across diverse policy inputs (state, image, pointcloud) and enable successful real-world VLA <b>RL fine-tuning in under one hour</b>.
             </p>
         </div>
     </div>
