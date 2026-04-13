@@ -223,13 +223,15 @@
     </div>
 </section>
 
-<!-- Abstract -->
+<!-- Overview -->
 <section class="section compact">
     <div class="container is-max-desktop">
-        <h2 class="title is-3">Abstract</h2>
+        <h2 class="title is-3">Overview</h2>
         <div class="content has-text-justified">
             <p>
-                Fine-tuning pre-trained robot policies with reinforcement learning (RL) is promising, but standard behavior cloning (BC) produces narrow, overconfident action distributions that generalize poorly and limit downstream RL improvement. We present a unified framework for bridging BC pre-training and RL fine-tuning. Our pre-training method, <strong>Context-Smoothed Pre-training (CSP)</strong>, injects forward-diffusion noise into policy inputs, enabling a continuous spectrum between precise conditional imitation and broader action coverage. For efficient RL fine-tuning, we introduce <strong>Timestep-Modulated Reinforcement Learning (TMRL)</strong>, which allows the agent to dynamically adjust conditioning strength during fine-tuning to control exploration. Across diverse settings, CSP integrates seamlessly with arbitrary policy inputs—from states to 3D point clouds—and with image-input vision-language-action policies. TMRL with these context-smoothed policies significantly improves RL sample efficiency over prior approaches. Notably, TMRL enables successful real-world fine-tuning on complex manipulation tasks in under one hour of interaction.
+                We present a <i>unified framework</i> for robot policy <b>pre-training</b> and <b>RL fine-tuning</b> that signifcantly improves fine-tuning sample efficiency RL.
+                <strong>Context-Smoothed Pre-training (CSP)</strong> widens action coverage by adding diffusion noise to policy inputs, while <strong>Timestep-Modulated Reinforcement Learning (TMRL)</strong> adjusts conditioning during fine-tuning to improve exploration.
+                Together, they deliver strong gains across diverse policy inputs and enable successful real-world fine-tuning on complex manipulation tasks in under one hour.
             </p>
         </div>
     </div>
