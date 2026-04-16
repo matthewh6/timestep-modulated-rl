@@ -288,7 +288,7 @@
             <div style="display:flex; gap:24px; justify-content:center; align-items:flex-start; flex-wrap:wrap; font-family:'Palatino', sans-serif;">
                 <div style="display:flex; flex-direction:column; align-items:center; flex:1 1 420px; max-width:460px;">
                     <div style="font-size:1.25rem; margin-bottom:10px;">
-                        <i>p</i>(<i>a</i>)
+                        <i>p</i>(<i>a</i>&nbsp;|&nbsp;<i>c</i>)
                     </div>
                     <video autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
                         <source src="static/videos/base_pointmaze.mp4" type="video/mp4">
@@ -296,7 +296,7 @@
                 </div>
                 <div style="display:flex; flex-direction:column; align-items:center; flex:1 1 420px; max-width:460px;">
                     <div style="font-size:1.25rem; margin-bottom:10px;">
-                        <i>p</i>(<i>a</i>&nbsp;|&nbsp;<i>c</i>)
+                        <i>p</i>(<i>a</i>)
                     </div>
                     <video autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
                         <source src="static/videos/csp_pointmaze.mp4" type="video/mp4">
@@ -475,25 +475,10 @@
         </div>
 
         <!-- Task tabs -->
-        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1rem;">
-            <button class="sweep-tab" data-task="libero_90_51"
-                    data-instruction="pick up the butter and put it in the basket"
-                    onclick="sweepSetTask(this)">Libero-90 · Task 51</button>
-            <button class="sweep-tab" data-task="libero_90_66"
-                    data-instruction="put the red mug on the right plate"
-                    onclick="sweepSetTask(this)">Libero-90 · Task 66</button>
-            <button class="sweep-tab active" data-task="libero_goal_1"
-                    data-instruction="put the bowl on the stove"
-                    onclick="sweepSetTask(this)">Libero-Goal · Task 1</button>
-            <button class="sweep-tab" data-task="libero_goal_2"
-                    data-instruction="put the wine bottle on the top of the drawer"
-                    onclick="sweepSetTask(this)">Libero-Goal · Task 2</button>
-            <button class="sweep-tab" data-task="cube_single" data-instruction=""
-                    onclick="sweepSetTask(this)">Cube-Single</button>
-        </div>
+        <div id="sweep-tabs" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1rem;"></div>
 
         <!-- Language instruction (hidden for non-language tasks) -->
-        <code id="sweep-instruction">put the bowl on the stove</code>
+        <code id="sweep-instruction" style="display:none;"></code>
 
         <!-- Composite video -->
         <div id="sweep-grid" class="sweep-grid-cube"></div>
@@ -528,15 +513,16 @@
 
     var DIST_LABELS = ['conditional', '', '', '', 'marginal'];
 
-    var TASK_CFG = {
-        libero_90_51:  { mode: 'multi', base: 'static/videos/libero_context_noise_sweep/libero_90_51' },
-        libero_90_66:  { mode: 'multi', base: 'static/videos/libero_context_noise_sweep/libero_90_66' },
-        libero_goal_1: { mode: 'multi', base: 'static/videos/libero_context_noise_sweep/libero_goal_1' },
-        libero_goal_2: { mode: 'multi', base: 'static/videos/libero_context_noise_sweep/libero_goal_2' },
-        cube_single:   { mode: 'composite', base: 'static/videos/cube_context_noise_sweep' }
-    };
+    var FALLBACK_TASKS = [
+        { id: 'libero_90_51', instruction: 'pick up the butter and put it in the basket' },
+        { id: 'libero_90_66', instruction: 'put the red mug on the right plate' },
+        { id: 'libero_goal_1', instruction: 'put the bowl on the stove' },
+        { id: 'libero_goal_2', instruction: 'put the wine bottle on the top of the drawer' }
+    ];
+    var TASK_SPECS = [];
+    var TASK_INSTRUCTIONS = {};
 
-    var _task     = 'libero_90_51';
+    var _task     = 'libero_goal_1';
     var _noiseIdx = 0;
     var _animating = false;
     var ROLLOUT_IDS = [0, 1, 2, 3, 4];
@@ -545,10 +531,109 @@
         return String(n).padStart(3, '0');
     }
 
+    function getTaskCfg(taskId) {
+        if (taskId === 'cube_single') {
+            return { mode: 'composite', base: 'static/videos/cube_context_noise_sweep' };
+        }
+        return { mode: 'multi', base: 'static/videos/libero_context_noise_sweep/' + taskId };
+    }
+
+    function formatTaskLabel(taskId) {
+        if (taskId === 'cube_single') return 'Cube-Single';
+        var parts = taskId.split('_');
+        if (parts.length >= 3 && parts[0] === 'libero') {
+            var suite = parts.slice(1, -1).join('-');
+            var idx = parts[parts.length - 1];
+            return 'Libero-' + suite + ' · Task ' + idx;
+        }
+        return taskId.replace(/_/g, '-');
+    }
+
+    function updateInstruction() {
+        var instrEl = document.getElementById('sweep-instruction');
+        var instr = TASK_INSTRUCTIONS[_task] || '';
+        if (instr) {
+            instrEl.textContent = instr;
+            instrEl.style.display = 'block';
+        } else {
+            instrEl.style.display = 'none';
+        }
+    }
+
+    function renderTaskTabs() {
+        var tabsRoot = document.getElementById('sweep-tabs');
+        tabsRoot.innerHTML = '';
+        TASK_SPECS.forEach(function (spec) {
+            var btn = document.createElement('button');
+            btn.className = 'sweep-tab' + (spec.id === _task ? ' active' : '');
+            btn.dataset.task = spec.id;
+            btn.dataset.instruction = spec.instruction || '';
+            btn.textContent = formatTaskLabel(spec.id);
+            btn.addEventListener('click', function () { window.sweepSetTask(btn); });
+            tabsRoot.appendChild(btn);
+        });
+    }
+
+    function parseTasksText(rawText) {
+        var seen = {};
+        var parsed = [];
+        rawText.split('\n').forEach(function (line) {
+            var trimmed = line.trim();
+            if (!trimmed) return;
+
+            var mTask = trimmed.match(/^(libero_[a-z0-9_]+)\s+task\s+([0-9]+):\s*(.+)$/i);
+            if (mTask) {
+                var idFromTask = mTask[1].toLowerCase() + '_' + mTask[2];
+                if (!seen[idFromTask]) {
+                    seen[idFromTask] = true;
+                    parsed.push({ id: idFromTask, instruction: mTask[3] });
+                }
+                return;
+            }
+
+            var mId = trimmed.match(/^(libero_[a-z0-9_]+):\s*(.+)$/i);
+            if (mId) {
+                var idDirect = mId[1].toLowerCase();
+                if (!seen[idDirect]) {
+                    seen[idDirect] = true;
+                    parsed.push({ id: idDirect, instruction: mId[2] });
+                }
+            }
+        });
+        return parsed;
+    }
+
+    function setTasks(tasks) {
+        TASK_SPECS = tasks.slice();
+        TASK_SPECS.push({ id: 'cube_single', instruction: '' });
+        TASK_INSTRUCTIONS = {};
+        TASK_SPECS.forEach(function (spec) { TASK_INSTRUCTIONS[spec.id] = spec.instruction || ''; });
+        if (!TASK_INSTRUCTIONS[_task]) _task = TASK_SPECS[0].id;
+        renderTaskTabs();
+        updateInstruction();
+        render();
+    }
+
+    function loadTasksFromFile() {
+        fetch('static/videos/libero_context_noise_sweep/tasks.txt')
+            .then(function (res) { return res.text(); })
+            .then(function (txt) {
+                var parsed = parseTasksText(txt);
+                if (parsed.length > 0) {
+                    setTasks(parsed);
+                } else {
+                    setTasks(FALLBACK_TASKS);
+                }
+            })
+            .catch(function () {
+                setTasks(FALLBACK_TASKS);
+            });
+    }
+
     function render() {
         var nl  = NOISE_LEVELS[_noiseIdx];
         var lbl = DIST_LABELS[_noiseIdx];
-        var cfg = TASK_CFG[_task];
+        var cfg = getTaskCfg(_task);
 
         document.getElementById('sweep-sigma-display').textContent = parseFloat(nl).toFixed(2);
         document.getElementById('sweep-dist-label').textContent = lbl ? '(' + lbl + ')' : '';
@@ -574,7 +659,7 @@
             compositeCell.appendChild(compositeVid);
             grid.appendChild(compositeCell);
             compositeVid.load();
-            compositeVid.play().then(function () { compositeVid.playbackRate = 1.5; }).catch(function () {});
+            compositeVid.play().then(function () { compositeVid.playbackRate = 1.0; }).catch(function () {});
             return;
         }
 
@@ -624,14 +709,7 @@
         document.querySelectorAll('.sweep-tab').forEach(function (b) { b.classList.remove('active'); });
         btn.classList.add('active');
         _task = btn.dataset.task;
-        var instrEl = document.getElementById('sweep-instruction');
-        var instr = btn.dataset.instruction;
-        if (instr) {
-            instrEl.textContent = instr;
-            instrEl.style.display = 'block';
-        } else {
-            instrEl.style.display = 'none';
-        }
+        updateInstruction();
         _noiseIdx = 0;
         document.getElementById('sweep-slider').value = 0;
         render();
@@ -648,7 +726,7 @@
     var sec = document.getElementById('noise-sweep-section');
     if (sec) _observer.observe(sec);
 
-    render();
+    loadTasksFromFile();
 })();
 </script>
 
