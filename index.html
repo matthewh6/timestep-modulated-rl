@@ -209,6 +209,35 @@
                 padding: 2rem 1rem 1rem;
             }
         }
+
+        /* ── Smooth load & transitions ── */
+        body {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        body.page-loaded {
+            opacity: 1;
+        }
+        #sweep-grid {
+            transition: opacity 0.18s ease;
+        }
+        .static-video {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .static-video.vid-ready {
+            opacity: 1;
+        }
+        /* Shimmer placeholder while video loads */
+        .sweep-vid-cell {
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -252,6 +281,9 @@
     </div>
 </section>
 
+<!-- Table of Contents (fixed right sidebar) -->
+<nav id="tmrl-toc" aria-label="Table of contents"></nav>
+
 <section class="section compact">
     <div class="container is-max-desktop">
         <hr>
@@ -259,7 +291,7 @@
 </section>
 
 <!-- Overview -->
-<section class="section compact">
+<section class="section compact" id="section-overview">
     <div class="container is-max-desktop">
         <h2 class="title is-3">Overview</h2>
         <div class="content has-text-justified">
@@ -276,7 +308,7 @@
 </section>
 
 <!-- Motivation -->
-<section class="section compact">
+<section class="section compact" id="section-motivation">
     <div class="container is-max-desktop">
         <h2 class="title is-3">The Need for Action Distribution Interpolation</h2>
         <div class="content has-text-justified">
@@ -290,7 +322,7 @@
                     <div style="font-size:1.25rem; margin-bottom:10px;">
                         <i>p</i>(<i>a</i>&nbsp;|&nbsp;<i>c</i>)
                     </div>
-                    <video autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
+                    <video class="static-video" autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
                         <source src="static/videos/base_pointmaze.mp4" type="video/mp4">
                     </video>
                 </div>
@@ -298,7 +330,7 @@
                     <div style="font-size:1.25rem; margin-bottom:10px;">
                         <i>p</i>(<i>a</i>)
                     </div>
-                    <video autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
+                    <video class="static-video" autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
                         <source src="static/videos/csp_pointmaze.mp4" type="video/mp4">
                     </video>
                 </div>
@@ -371,7 +403,7 @@
 </section>
 
 <!-- Method -->
-<section class="section compact">
+<section class="section compact" id="section-method">
     <div class="container is-max-desktop">
         <h2 class="title is-3">Method</h2>
         <div class="content has-text-justified">
@@ -485,12 +517,12 @@
 
         <!-- Noise slider -->
         <div style="margin:1.1rem auto 0;">
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#555; margin-bottom:4px; padding:0 1px;">
-                <span>conditional &nbsp;(&sigma;&nbsp;=&nbsp;0)</span>
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); font-size:0.8rem; color:#555; margin-bottom:4px; text-align:center;">
+                <span style="text-align:left;">conditional &nbsp;(&sigma;&nbsp;=&nbsp;0)</span>
                 <span>&sigma;&nbsp;=&nbsp;T/4</span>
                 <span>&sigma;&nbsp;=&nbsp;T/2</span>
                 <span>&sigma;&nbsp;=&nbsp;3T/4</span>
-                <span>marginal &nbsp;(&sigma;&nbsp;=&nbsp;T)</span>
+                <span style="text-align:right;">marginal &nbsp;(&sigma;&nbsp;=&nbsp;T)</span>
             </div>
             <input type="range" id="sweep-slider" min="0" max="4" step="1" value="0"
                    style="width:100%; accent-color:#248656; cursor:pointer;"
@@ -510,40 +542,74 @@
 <script>
 (function () {
     var NOISE_LEVELS = ['0.00', '0.25', '0.50', '0.75', '1.00'];
+    var DIST_LABELS  = ['conditional', '', '', '', 'marginal'];
 
-    var DIST_LABELS = ['conditional', '', '', '', 'marginal'];
-
-    var FALLBACK_TASKS = [
-        { id: 'libero_90_51', instruction: 'pick up the butter and put it in the basket' },
-        { id: 'libero_90_66', instruction: 'put the red mug on the right plate' },
-        { id: 'libero_goal_1', instruction: 'put the bowl on the stove' },
-        { id: 'libero_goal_2', instruction: 'put the wine bottle on the top of the drawer' }
-    ];
-    var TASK_SPECS = [];
+    var TASK_SPECS        = [];
     var TASK_INSTRUCTIONS = {};
 
-    var _task     = 'libero_goal_1';
-    var _noiseIdx = 0;
-    var _animating = false;
+    var _task      = 'cube_single';
+    var _noiseIdx  = 0;
     var ROLLOUT_IDS = [0, 1, 2, 3, 4];
 
-    function pad3(n) {
-        return String(n).padStart(3, '0');
-    }
+    // ── Preload pool ──────────────────────────────────────────────────────
+    // Holds hidden <video> elements keyed by taskId → noiseLevel → [videos]
+    // so the browser buffers them and subsequent renders hit the cache.
+    var _pool = {};
+    var _poolRoot = (function () {
+        var el = document.createElement('div');
+        el.setAttribute('aria-hidden', 'true');
+        el.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none;';
+        document.body.appendChild(el);
+        return el;
+    }());
+
+    function pad3(n) { return String(n).padStart(3, '0'); }
 
     function getTaskCfg(taskId) {
+        var base = 'static/videos/context_noise_sweep/' + taskId;
         if (taskId === 'cube_single') {
-            return { mode: 'composite', base: 'static/videos/cube_context_noise_sweep' };
+            return { mode: 'composite', base: base };
         }
-        return { mode: 'multi', base: 'static/videos/libero_context_noise_sweep/' + taskId };
+        return { mode: 'multi', base: base };
     }
 
+    function getSrcsForLevel(cfg, nl) {
+        if (cfg.mode === 'composite') {
+            return [cfg.base + '/sigma_' + nl + '/composite.mp4'];
+        }
+        return ROLLOUT_IDS.map(function (rid) {
+            return cfg.base + '/sigma_' + nl + '/ep_' + pad3(rid) + '.mp4';
+        });
+    }
+
+    function makePoolVid(src) {
+        var v = document.createElement('video');
+        v.src     = src;
+        v.muted   = true;
+        v.loop    = true;
+        v.preload = 'auto';
+        v.setAttribute('playsinline', '');
+        _poolRoot.appendChild(v);
+        return v;
+    }
+
+    // Start buffering all noise levels for a task (no-op if already pooled).
+    function preloadTask(taskId) {
+        if (_pool[taskId]) return;
+        var cfg = getTaskCfg(taskId);
+        _pool[taskId] = {};
+        NOISE_LEVELS.forEach(function (nl) {
+            _pool[taskId][nl] = getSrcsForLevel(cfg, nl).map(makePoolVid);
+        });
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
     function formatTaskLabel(taskId) {
-        if (taskId === 'cube_single') return 'Cube-Single';
+        if (taskId === 'cube_single') return 'cube-single';
         var parts = taskId.split('_');
         if (parts.length >= 3 && parts[0] === 'libero') {
             var suite = parts.slice(1, -1).join('-');
-            var idx = parts[parts.length - 1];
+            var idx   = parts[parts.length - 1];
             return 'Libero-' + suite + ' · Task ' + idx;
         }
         return taskId.replace(/_/g, '-');
@@ -551,13 +617,9 @@
 
     function updateInstruction() {
         var instrEl = document.getElementById('sweep-instruction');
-        var instr = TASK_INSTRUCTIONS[_task] || '';
-        if (instr) {
-            instrEl.textContent = instr;
-            instrEl.style.display = 'block';
-        } else {
-            instrEl.style.display = 'none';
-        }
+        var instr   = TASK_INSTRUCTIONS[_task] || '';
+        instrEl.textContent  = instr;
+        instrEl.style.display = instr ? 'block' : 'none';
     }
 
     function renderTaskTabs() {
@@ -565,39 +627,25 @@
         tabsRoot.innerHTML = '';
         TASK_SPECS.forEach(function (spec) {
             var btn = document.createElement('button');
-            btn.className = 'sweep-tab' + (spec.id === _task ? ' active' : '');
-            btn.dataset.task = spec.id;
+            btn.className       = 'sweep-tab' + (spec.id === _task ? ' active' : '');
+            btn.dataset.task    = spec.id;
             btn.dataset.instruction = spec.instruction || '';
-            btn.textContent = formatTaskLabel(spec.id);
+            btn.textContent     = formatTaskLabel(spec.id);
             btn.addEventListener('click', function () { window.sweepSetTask(btn); });
             tabsRoot.appendChild(btn);
         });
     }
 
     function parseTasksText(rawText) {
-        var seen = {};
-        var parsed = [];
+        var seen = {}, parsed = [];
         rawText.split('\n').forEach(function (line) {
             var trimmed = line.trim();
             if (!trimmed) return;
-
-            var mTask = trimmed.match(/^(libero_[a-z0-9_]+)\s+task\s+([0-9]+):\s*(.+)$/i);
-            if (mTask) {
-                var idFromTask = mTask[1].toLowerCase() + '_' + mTask[2];
-                if (!seen[idFromTask]) {
-                    seen[idFromTask] = true;
-                    parsed.push({ id: idFromTask, instruction: mTask[3] });
-                }
-                return;
-            }
-
-            var mId = trimmed.match(/^(libero_[a-z0-9_]+):\s*(.+)$/i);
-            if (mId) {
-                var idDirect = mId[1].toLowerCase();
-                if (!seen[idDirect]) {
-                    seen[idDirect] = true;
-                    parsed.push({ id: idDirect, instruction: mId[2] });
-                }
+            // format: task_id: instruction  (instruction may be empty)
+            var m = trimmed.match(/^([a-z0-9_]+):\s*(.*)$/i);
+            if (m) {
+                var id = m[1].toLowerCase();
+                if (!seen[id]) { seen[id] = true; parsed.push({ id: id, instruction: m[2].trim() }); }
             }
         });
         return parsed;
@@ -605,126 +653,120 @@
 
     function setTasks(tasks) {
         TASK_SPECS = tasks.slice();
-        TASK_SPECS.push({ id: 'cube_single', instruction: '' });
         TASK_INSTRUCTIONS = {};
         TASK_SPECS.forEach(function (spec) { TASK_INSTRUCTIONS[spec.id] = spec.instruction || ''; });
+        // Default to first task (cube_single is first in tasks.txt)
         if (!TASK_INSTRUCTIONS[_task]) _task = TASK_SPECS[0].id;
         renderTaskTabs();
         updateInstruction();
+        preloadTask(_task);
         render();
     }
 
     function loadTasksFromFile() {
-        fetch('static/videos/libero_context_noise_sweep/tasks.txt')
+        fetch('static/videos/context_noise_sweep/tasks.txt')
             .then(function (res) { return res.text(); })
             .then(function (txt) {
                 var parsed = parseTasksText(txt);
-                if (parsed.length > 0) {
-                    setTasks(parsed);
-                } else {
-                    setTasks(FALLBACK_TASKS);
-                }
+                if (parsed.length > 0) setTasks(parsed);
             })
-            .catch(function () {
-                setTasks(FALLBACK_TASKS);
-            });
+            .catch(function () {});
     }
 
+    // ── Render with crossfade ─────────────────────────────────────────────
+    var _renderToken = 0; // increments on each render call; lets async callbacks bail if stale
+
     function render() {
-        var nl  = NOISE_LEVELS[_noiseIdx];
-        var lbl = DIST_LABELS[_noiseIdx];
-        var cfg = getTaskCfg(_task);
+        var nl   = NOISE_LEVELS[_noiseIdx];
+        var lbl  = DIST_LABELS[_noiseIdx];
+        var cfg  = getTaskCfg(_task);
+        var token = ++_renderToken;
 
         document.getElementById('sweep-sigma-display').textContent = parseFloat(nl).toFixed(2);
         document.getElementById('sweep-dist-label').textContent = lbl ? '(' + lbl + ')' : '';
 
         var grid = document.getElementById('sweep-grid');
-        grid.innerHTML = '';
 
-        if (cfg.mode === 'composite') {
-            grid.className = 'sweep-grid-cube';
-            var compositeSrc = cfg.base + '/sigma_' + nl + '/composite.mp4';
-            var compositeCell = document.createElement('div');
-            compositeCell.className = 'sweep-vid-cell';
-            compositeCell.style.cssText = 'border-radius:8px; overflow:hidden;';
+        // Step 1: fade out
+        grid.style.opacity = '0';
 
-            var compositeVid = document.createElement('video');
-            compositeVid.id  = 'sweep-composite-vid';
-            compositeVid.src = compositeSrc;
-            compositeVid.autoplay = true;
-            compositeVid.loop = true;
-            compositeVid.muted = true;
-            compositeVid.setAttribute('playsinline', '');
-            compositeVid.style.cssText = 'width:100%; display:block; border-radius:8px; background:#111;';
-            compositeCell.appendChild(compositeVid);
-            grid.appendChild(compositeCell);
-            compositeVid.load();
-            compositeVid.play().then(function () { compositeVid.playbackRate = 1.0; }).catch(function () {});
-            return;
-        }
+        setTimeout(function () {
+            if (token !== _renderToken) return; // superseded by a newer render
+            grid.innerHTML = '';
 
-        grid.className = 'sweep-grid-libero';
-        ROLLOUT_IDS.forEach(function (rid) {
-            var epSrc = cfg.base + '/sigma_' + nl + '/ep_' + pad3(rid) + '.mp4';
-            var cell = document.createElement('div');
-            cell.className = 'sweep-vid-cell';
-            cell.style.cssText = 'border-radius:8px; overflow:hidden;';
+            var poolVids = _pool[_task] && _pool[_task][nl]; // may be undefined if pool not ready yet
 
-            var vid = document.createElement('video');
-            vid.src = epSrc;
-            vid.autoplay = true;
-            vid.loop = true;
-            vid.muted = true;
-            vid.setAttribute('playsinline', '');
-            vid.style.cssText = 'width:100%; display:block; border-radius:8px; background:#111;';
-            cell.appendChild(vid);
-            grid.appendChild(cell);
-            vid.load();
-            vid.play().then(function () { vid.playbackRate = 1.5; }).catch(function () {});
+            if (cfg.mode === 'composite') {
+                grid.className = 'sweep-grid-cube';
+                var cell = document.createElement('div');
+                cell.className = 'sweep-vid-cell';
+                cell.style.cssText = 'border-radius:8px; overflow:hidden;';
+
+                var vid = document.createElement('video');
+                // If pool has this video the browser already buffered it — same src hits cache
+                vid.src = poolVids ? poolVids[0].src : cfg.base + '/sigma_' + nl + '/composite.mp4';
+                vid.autoplay = true; vid.loop = true; vid.muted = true;
+                vid.setAttribute('playsinline', '');
+                vid.style.cssText = 'width:100%; display:block; border-radius:8px;';
+                cell.appendChild(vid);
+                grid.appendChild(cell);
+                fadeInOnReady(grid, [vid], token);
+                vid.play().then(function () { vid.playbackRate = 1.0; }).catch(function () {});
+
+            } else {
+                grid.className = 'sweep-grid-libero';
+                var newVids = [];
+                ROLLOUT_IDS.forEach(function (rid, i) {
+                    var src = poolVids ? poolVids[i].src
+                                       : cfg.base + '/sigma_' + nl + '/ep_' + pad3(rid) + '.mp4';
+                    var c = document.createElement('div');
+                    c.className = 'sweep-vid-cell';
+                    c.style.cssText = 'border-radius:8px; overflow:hidden;';
+                    var v = document.createElement('video');
+                    v.src = src; v.autoplay = true; v.loop = true; v.muted = true;
+                    v.setAttribute('playsinline', '');
+                    v.style.cssText = 'width:100%; display:block; border-radius:8px;';
+                    c.appendChild(v);
+                    grid.appendChild(c);
+                    newVids.push(v);
+                });
+                fadeInOnReady(grid, newVids, token);
+                newVids.forEach(function (v) {
+                    v.play().then(function () { v.playbackRate = 1.5; }).catch(function () {});
+                });
+            }
+        }, 180);
+    }
+
+    // Fade the grid back in when the first video in `vids` is ready to play.
+    function fadeInOnReady(grid, vids, token) {
+        var done = false;
+        var fallback = setTimeout(function () {
+            if (token === _renderToken && !done) { done = true; grid.style.opacity = '1'; }
+        }, 600);
+        vids[0].addEventListener('canplay', function onCan() {
+            vids[0].removeEventListener('canplay', onCan);
+            clearTimeout(fallback);
+            if (token === _renderToken && !done) { done = true; grid.style.opacity = '1'; }
         });
     }
 
-    function animateSweep() {
-        _animating = true;
-        [0, 1, 2, 3, 4].forEach(function (lvl, i) {
-            setTimeout(function () {
-                if (!_animating) return;
-                _noiseIdx = lvl;
-                document.getElementById('sweep-slider').value = lvl;
-                render();
-            }, i * 700);
-        });
-        setTimeout(function () { _animating = false; }, 5 * 700 + 100);
-    }
-
-    // ── Public API ───────────────────────────────────────────────────────
+    // ── Public API ────────────────────────────────────────────────────────
     window.sweepUpdate = function () {
-        _animating = false;
         _noiseIdx = parseInt(document.getElementById('sweep-slider').value);
         render();
     };
 
     window.sweepSetTask = function (btn) {
-        _animating = false;
         document.querySelectorAll('.sweep-tab').forEach(function (b) { b.classList.remove('active'); });
         btn.classList.add('active');
         _task = btn.dataset.task;
         updateInstruction();
         _noiseIdx = 0;
         document.getElementById('sweep-slider').value = 0;
+        preloadTask(_task);   // start buffering all noise levels for this task now
         render();
     };
-
-    // ── Auto-animate on scroll into view ─────────────────────────────────
-    var _animated = false;
-    var _observer = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting && !_animated) {
-            _animated = true;
-            setTimeout(animateSweep, 400);
-        }
-    }, { threshold: 0.3 });
-    var sec = document.getElementById('noise-sweep-section');
-    if (sec) _observer.observe(sec);
 
     loadTasksFromFile();
 })();
@@ -737,7 +779,7 @@
 </section>
 
 <!-- Pre-training Results -->
-<section class="section compact">
+<section class="section compact" id="section-pretrain">
     <div class="container is-max-desktop">
         <h2 class="title is-3">Pre-training Results</h2>
         <div class="content has-text-justified">
@@ -764,10 +806,10 @@
     </div>
 </section>
 
-<!-- RL Results -->
-<section class="section compact">
+<!-- Simulation Results -->
+<section class="section compact" id="section-sim">
     <div class="container is-max-desktop">
-        <h2 class="title is-3">RL Fine-tuning Results</h2>
+        <h2 class="title is-3">Simulation Results</h2>
         <div class="content has-text-justified">
             <p>
                 We evaluate TMRL on OGBench and LIBERO tasks against prior RL-with-priors baselines. TMRL reaches near-100% success on both OGBench tasks, outperforms strong baselines on final performance, and is the only method that reliably solves the longer-horizon LIBERO-90 setting where broader yet coherent exploration is required.
@@ -781,14 +823,36 @@
                 <strong>Simulation results.</strong> TMRL consistently improves RL sample efficiency and final success by adaptively modulating context smoothing. In hard OOD settings, this enables exploration beyond collapsed conditional support while remaining grounded in coherent behaviors from data.
             </p>
         </div>
-        <div class="content has-text-justified" style="margin-top: 1.5rem;">
+    </div>
+</section>
+
+<section class="section compact">
+    <div class="container is-max-desktop">
+        <hr>
+    </div>
+</section>
+
+<!-- Real-World RL -->
+<section class="section compact" id="real-world-section">
+    <div class="container is-max-desktop">
+        <h2 class="title is-3">Real-World RL with Context-Smoothed &pi;<sub>0</sub></h2>
+        <div class="content has-text-justified">
             <p>
-                We also show TMRL on real-world VLA fine-tuning. We context-smooth &pi;<sub>0</sub> by noising VLM embedding contexts during pre-training, then run TMRL on held-out manipulation tasks across WidowX and DROID platforms.
+                We apply CSP to the <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank">&pi;<sub>0</sub></a> vision-language-action model by injecting forward-diffusion noise into its VLM embedding context during pre-training. This produces a context-smoothed &pi;<sub>0</sub> whose conditioning strength can be modulated at inference time — enabling TMRL to dynamically interpolate between broad coverage and precise execution during real-world fine-tuning.
             </p>
         </div>
-        <div class="publication-image">
+        <div class="publication-image" style="margin-top:1.25rem;">
+            <video class="static-video" autoplay loop muted playsinline
+                   style="width:100%; border-radius:8px; background:#111; display:block;">
+                <source src="static/videos/cs_vla.mp4" type="video/mp4">
+            </video>
+            <p class="caption">
+                <strong>Context-smoothing applied to &pi;<sub>0</sub>.</strong> VLM embedding contexts are corrupted with a diffusion forward process parameterized by &sigma;, producing a spectrum from sharp conditional behavior (&sigma;&nbsp;=&nbsp;0) to broad marginal behavior (&sigma;&nbsp;=&nbsp;T). TMRL then learns to select &sigma; dynamically during real-world RL fine-tuning.
+            </p>
+        </div>
+        <div class="publication-image" style="margin-top:1.5rem;">
             <a class="img-wrap" href="#" data-lb-src="static/figures/real_results.png">
-                <img src="static/figures/real_results.png" alt="Real-world RL fine-tuning results on WidowX robot.">
+                <img src="static/figures/real_results.png" alt="Real-world RL fine-tuning results on WidowX and DROID robots.">
             </a>
             <p class="caption">
                 <strong>Real-world results.</strong> The pre-trained base policy often reaches for the wrong object and fails to complete tasks reliably. TMRL improves to near-perfect success in under one hour of interaction by dynamically broadening and sharpening behavior as needed during fine-tuning.
@@ -850,7 +914,7 @@
 }
 .rw-rollout-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
 }
 .rw-rollout-cell {
@@ -868,7 +932,7 @@
 }
 @media (max-width: 1024px) {
     .rw-rollout-grid {
-        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        grid-template-columns: repeat(4, minmax(120px, 1fr));
         overflow-x: auto;
         padding-bottom: 4px;
     }
@@ -882,10 +946,10 @@
 
 <section class="section compact" id="real-world-rollout-compare">
     <div class="container is-max-desktop">
-        <h2 class="title is-3">Real-World RL with &pi;<sub>0</sub> / Context-Smoothed &pi;<sub>0</sub></h2>
+        <h2 class="title is-3">Pre-trained Rollouts &amp; Learning Curves</h2>
         <div class="content has-text-justified">
             <p>
-                For each task, we compare pre-trained behavior from the base policy and context-smoothed policy, then show the corresponding real-world RL learning trajectory. Context smoothing broadens pre-trained action support, and TMRL leverages that support to accelerate downstream adaptation.
+                For each task, we compare pre-trained behavior from the base &pi;<sub>0</sub> and context-smoothed &pi;<sub>0</sub>, then show the corresponding real-world RL learning trajectory. Context smoothing broadens pre-trained action support, and TMRL leverages that support to accelerate downstream adaptation.
             </p>
         </div>
 
@@ -948,8 +1012,10 @@
 
 <script>
 (function () {
-    var ROLL_INDICES = [0, 1, 2, 3, 4];
+    var ROLL_INDICES = [0, 1, 2, 3];
     var _task = 'widowx_sausage';
+
+    function pad3(n) { return String(n).padStart(3, '0'); }
     var TASK_LABEL = {
         widowx_sausage: 'WidowX — Sausage',
         widowx_shrimp: 'WidowX — Shrimp',
@@ -981,8 +1047,8 @@
         pi0Grid.innerHTML = '';
         cspi0Grid.innerHTML = '';
         ROLL_INDICES.forEach(function (idx) {
-            var pi0Src = 'static/videos/real_world_rollouts/' + _task + '/pi0/rollout_' + idx + '.mp4';
-            var cspi0Src = 'static/videos/real_world_rollouts/' + _task + '/cspi0/rollout_' + idx + '.mp4';
+            var pi0Src = 'static/videos/real_world_rollouts/' + _task + '/pi0/ep_' + pad3(idx) + '.mp4';
+            var cspi0Src = 'static/videos/real_world_rollouts/' + _task + '/cspi0/ep_' + pad3(idx) + '.mp4';
             pi0Grid.appendChild(makeVideoCell(pi0Src, 'pi0 rollout ' + idx));
             cspi0Grid.appendChild(makeVideoCell(cspi0Src, 'cspi0 rollout ' + idx));
         });
@@ -1018,18 +1084,11 @@
 </section>
 
 <!-- BibTeX -->
-<section class="section compact">
+<section class="section compact" id="section-bibtex">
     <div class="container is-max-desktop">
         <h2 class="title is-3">BibTeX</h2>
-        <div class="bibtex-box">@misc{hong2026tmrl,
-            title={TMRL: Context-Smoothed Pre-training Enables Efficient RL via Diffusion Timestep Modulation},
-            author={Matthew M Hong and Jesse Zhang and Anusha Nagabandi and Abhishek Gupta},
-            year={2026},
-            <!-- eprint={2602.01439}, -->
-            archivePrefix={arXiv},
-            <!-- primaryClass={cs.LG}, -->
-            <!-- url={https://arxiv.org/abs/2602.01439}, -->
-        }</div>
+        <div class="bibtex-box">
+        </div>
     </div>
 </section>
 
@@ -1048,6 +1107,7 @@
 </div>
 
 <script>
+// ── Lightbox ──────────────────────────────────────────────────────────────
 document.querySelectorAll('[data-lb-src]').forEach(function(el) {
     el.addEventListener('click', function(e) {
         e.preventDefault();
@@ -1058,6 +1118,141 @@ document.querySelectorAll('[data-lb-src]').forEach(function(el) {
 document.getElementById('lb-overlay').addEventListener('click', function(e) {
     if (e.target === this || e.target.id === 'lb-close') this.classList.remove('open');
 });
+
+// ── Page fade-in ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    // Give the browser one frame to paint styles before fading in
+    requestAnimationFrame(function () {
+        document.body.classList.add('page-loaded');
+    });
+});
+
+// ── Static video fade-in on canplay ───────────────────────────────────────
+document.querySelectorAll('video.static-video').forEach(function (vid) {
+    function reveal() { vid.classList.add('vid-ready'); }
+    if (vid.readyState >= 2) {
+        reveal();
+    } else {
+        vid.addEventListener('canplay', reveal, { once: true });
+        // Fallback: show after 1.5s even if canplay never fires
+        setTimeout(reveal, 1500);
+    }
+});
+</script>
+
+<!-- ── Table of Contents ───────────────────────────────────────────────── -->
+<style>
+#tmrl-toc {
+    position: fixed;
+    top: 50%;
+    right: 1.5rem;
+    transform: translateY(-50%);
+    z-index: 200;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+    padding: 0.65rem 0;
+    min-width: 11.5rem;
+}
+#tmrl-toc .toc-label {
+    display: block;
+    padding: 0.1rem 1rem 0.45rem;
+    font-family: 'Palatino', serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #aaa;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    margin-bottom: 0.3rem;
+}
+#tmrl-toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#tmrl-toc li { margin: 0; }
+#tmrl-toc a {
+    display: block;
+    padding: 0.32rem 1rem 0.32rem 0.85rem;
+    font-family: 'Palatino', serif;
+    font-size: 0.72rem;
+    color: #888;
+    text-decoration: none;
+    line-height: 1.35;
+    border-left: 2.5px solid transparent;
+    transition: color 0.18s, background 0.18s, border-color 0.18s;
+}
+#tmrl-toc a:hover {
+    color: #333;
+    background: rgba(36,134,86,0.06);
+}
+#tmrl-toc a.toc-active {
+    color: #248656;
+    border-left-color: #248656;
+    font-weight: 600;
+    background: rgba(36,134,86,0.07);
+}
+@media (max-width: 1320px) { #tmrl-toc { display: none; } }
+</style>
+
+<script>
+(function () {
+    var TOC_ENTRIES = [
+        { id: 'section-overview',   label: 'Overview' },
+        { id: 'section-motivation', label: 'Action Distribution Interpolation' },
+        { id: 'section-method',     label: 'Method' },
+        { id: 'noise-sweep-section',label: 'Effect of Context Noise \u03c3' },
+        { id: 'section-pretrain',   label: 'Pre-training Results' },
+        { id: 'section-sim',        label: 'Simulation Results' },
+        { id: 'real-world-section', label: 'Real-World RL with \u03c0\u2080' },
+        { id: 'real-world-rollout-compare', label: 'Rollouts & Learning Curves' },
+        { id: 'section-bibtex',     label: 'BibTeX' },
+    ];
+
+    var nav = document.getElementById('tmrl-toc');
+    if (!nav) return;
+
+    // Build markup
+    var html = '<span class="toc-label">Contents</span><ul>';
+    TOC_ENTRIES.forEach(function (e) {
+        html += '<li><a href="#' + e.id + '" data-toc-id="' + e.id + '">' + e.label + '</a></li>';
+    });
+    html += '</ul>';
+    nav.innerHTML = html;
+
+    // Smooth scroll on click
+    nav.querySelectorAll('a[data-toc-id]').forEach(function (a) {
+        a.addEventListener('click', function (evt) {
+            evt.preventDefault();
+            var target = document.getElementById(this.dataset.tocId);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    // Active-section tracking via IntersectionObserver
+    var activeId = null;
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                activeId = entry.target.id;
+                nav.querySelectorAll('a').forEach(function (a) {
+                    a.classList.toggle('toc-active', a.dataset.tocId === activeId);
+                });
+            }
+        });
+    }, { rootMargin: '0px 0px -60% 0px', threshold: 0 });
+
+    TOC_ENTRIES.forEach(function (e) {
+        var el = document.getElementById(e.id);
+        if (el) observer.observe(el);
+    });
+})();
 </script>
 
 </body>
