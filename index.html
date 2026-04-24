@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TMRL: Context-Smoothed Pre-training Enables Efficient RL via Diffusion Timestep Modulation</title>
+    <title>TMRL: Context-Smoothed Pre-training Enables Efficient Post-training</title>
     <meta name="description" content="TMRL bridges behavior cloning pre-training and RL fine-tuning via context-smoothed policies and diffusion timestep modulation, enabling real-world robot fine-tuning in under one hour.">
 
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -41,7 +41,13 @@
         }
 
         .publication-authors a:hover {
-            text-decoration: underline;
+            text-decoration: none;
+            color: #00e676;
+        }
+
+        a:hover {
+            text-decoration: none !important;
+            color: #00e676;
         }
 
         .author-block {
@@ -228,7 +234,6 @@
         .static-video.vid-ready {
             opacity: 1;
         }
-        /* Shimmer placeholder while video loads */
         .sweep-vid-cell {
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
@@ -247,46 +252,51 @@
     <div class="hero-body">
         <div class="container is-max-desktop has-text-centered">
             <h1 class="publication-title">
-                <span style="color: #248656;">TMRL</span>: Context-Smoothed Pre-training Enables Efficient RL via Diffusion Timestep Modulation
-            </h1>
+                <span style="color: #248656;">TMRL</span>: Context-Smoothed Pre-training Enables Efficient Post-training</h1>
 
             <div class="publication-authors" style="margin-top: 1.25rem; font-size: 1.15rem;">
-                <span class="author-block"><a href="https://matthewh6.github.io/" target="_blank">Matthew M Hong<sup>*1</sup></a>,</span>
+                <span class="author-block"><a href="https://matthewh6.github.io/" target="_blank">Matthew Hong<sup>1</sup></a>,</span>
                 <span class="author-block"><a href="https://www.jessezhang.net/" target="_blank">Jesse Zhang<sup>1</sup></a>,</span>
                 <span class="author-block"><a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en/" target="_blank">Anusha Nagabandi<sup>2</sup></a>,</span>
                 <span class="author-block"><a href="https://abhishekunique.github.io/" target="_blank">Abhishek Gupta<sup>1</sup></a></span>
             </div>
 
             <div class="publication-venue" style="margin-top: 0.5rem;">
-                <span><sup>1</sup>University of Washington</span> &nbsp; <sup>2</sup>Amazon FAR<br>
-                <span><sup>*</sup>Work done while interning at UW</span>
+                <span><sup>1</sup>University of Washington</span> &nbsp; <sup>2</sup>Amazon FAR (Frontier AI & Robotics)<br>
+                <!-- <span><sup>*</sup>Work done while interning at UW</span> -->
             </div>
 
             <!-- Links -->
             <div class="link-block" style="margin-top: 1.25rem;">
-                <a class="button is-dark is-rounded" href="https://arxiv.org/abs/2602.01439" target="_blank">
+                <a class="button is-dark is-rounded" href="" target="_blank">
                     <span class="icon"><i class="ai ai-arxiv"></i></span>
                     <span>arXiv</span>
-                </a>
-                <a class="button is-dark is-rounded" href="https://arxiv.org/pdf/2602.01439" target="_blank">
-                    <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor" width="16" height="16"><path d="M64 0C28.7 0 0 28.7 0 64v384c0 35.3 28.7 64 64 64h256c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zm192 0v128h128L256 0z"/></svg></span>
-                    <span>PDF</span>
                 </a>
                 <a class="button is-dark is-rounded" href="https://github.com/matthewh6/tmrl" target="_blank">
                     <span class="icon"><i class="fab fa-github"></i></span>
                     <span>Code</span>
                 </a>
             </div>
+
         </div>
     </div>
 </section>
 
-<!-- Table of Contents (fixed right sidebar) -->
+<!-- Table of Contents -->
 <nav id="tmrl-toc" aria-label="Table of contents"></nav>
 
 <section class="section compact">
     <div class="container is-max-desktop">
         <hr>
+    </div>
+</section>
+
+<!-- Teaser video -->
+<section class="section compact">
+    <div class="container is-max-desktop">
+        <video class="static-video" autoplay loop muted playsinline style="width:100%; border-radius:8px; background:#111;">
+            <source src="static/videos/website_teaser.mp4" type="video/mp4">
+        </video>
     </div>
 </section>
 
@@ -296,12 +306,12 @@
         <h2 class="title is-3">Overview</h2>
         <div class="content has-text-justified">
             <p>
-                We present a <i>unified framework</i> that bridges behavior cloning (BC) pre-training and RL fine-tuning.
+                Standard behavior cloning (BC) produces narrow, overconfident action distributions that generalize poorly and limit downstream RL improvement. We present a unified framework for bridging BC pre-training and RL fine-tuning, centered on two ideas:
                 <ul>
-                    <li><strong>Context-Smoothed Pre-training (CSP)</strong> injects forward-diffusion noise into policy inputs, inducing a continuous spectrum between precise conditional imitation and broader action coverage.</li>
-                    <li><strong>Timestep-Modulated Reinforcement Learning (TMRL)</strong> dynamically adjusts conditioning strength during RL fine-tuning, allowing the policy to interpolate between p(a&nbsp;|&nbsp;c) and p(a) for adaptive exploration.</li>
+                    <li><strong>Context-Smoothed Pre-training (CSP)</strong> injects noise into policy inputs via a forward diffusion process, inducing a continuous spectrum from precise conditional imitation to broader action coverage — enabling the policy to be queried at any conditioning strength at inference time.</li>
+                    <li><strong>Timestep-Modulated Reinforcement Learning (TMRL)</strong> exposes the context-noise level &sigma; as an explicit control variable for a high-level policy &pi;<sub>HL</sub>, which dynamically adjusts conditioning strength during fine-tuning to interpolate between p(a&nbsp;|&nbsp;c) and p(a) for adaptive exploration and exploitation.</li>
                 </ul>
-                Across diverse policy inputs (state, image, pointcloud, and VLM embeddings), CSP + TMRL significantly improves RL sample efficiency and enables real-world VLA fine-tuning in <b>under one hour</b> of interaction.
+                Across diverse settings, CSP integrates seamlessly with arbitrary policy inputs — from states to 3D pointclouds to VLM embeddings. TMRL with these context-smoothed policies significantly improves RL sample efficiency over prior approaches, enabling successful real-world fine-tuning on complex manipulation tasks in <b>under one hour</b> of interaction.
             </p>
         </div>
     </div>
@@ -313,7 +323,7 @@
         <h2 class="title is-3">The Need for Action Distribution Interpolation</h2>
         <div class="content has-text-justified">
             <p>
-                Standard BC policies learn a narrow conditional distribution p(a&nbsp;|&nbsp;c). In unseen or low-density contexts, this conditional support often collapses, assigning near-zero probability to potentially optimal actions. In a simple 2D point-maze, we show that p(a&nbsp;|&nbsp;c) is too narrow to reliably reach an unseen goal, while the marginal p(a) provides broader coverage but lacks precision near the goal. This motivates pre-training a policy that can interpolate between these distributions, then letting RL dynamically choose where to operate on that spectrum.
+                A fundamental bottleneck in RL fine-tuning is distribution shift: in novel contexts, the pre-trained conditional distribution p(a&nbsp;|&nbsp;c) often overcommits to observed data, collapsing its support and assigning near-zero probability to potentially optimal actions. We illustrate this with a simple experiment in a 2D point-maze from OGBench: for an unseen goal position, p(a&nbsp;|&nbsp;c) remains narrow and lacks sufficient support for the agent to reach the goal, while the marginal p(a) provides the coverage necessary — though too much variation near the goal. An optimal policy should more closely match p(a) at the beginning of the trajectory for coverage and p(a&nbsp;|&nbsp;c) at the end for precision. CSP provides this interpolation mechanism; TMRL learns when and how to use it during fine-tuning.
             </p>
         </div>
         <div class="publication-image" style="margin-top: 1.5rem;">
@@ -323,7 +333,7 @@
                         <i>p</i>(<i>a</i>&nbsp;|&nbsp;<i>c</i>)
                     </div>
                     <video class="static-video" autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
-                        <source src="static/videos/base_pointmaze.mp4" type="video/mp4">
+                        <source src="static/videos/bc_pointmaze.mp4" type="video/mp4">
                     </video>
                 </div>
                 <div style="display:flex; flex-direction:column; align-items:center; flex:1 1 420px; max-width:460px;">
@@ -336,7 +346,7 @@
                 </div>
             </div>
             <p class="caption">
-                <strong>The need for action distribution interpolation.</strong> For an unseen goal position, p(a&nbsp;|&nbsp;c) remains narrow and under-covers useful actions, while p(a) offers broad support but excessive variation near task completion. An optimal strategy leans toward p(a) early for coverage and toward p(a&nbsp;|&nbsp;c) later for precision. CSP provides this interpolation mechanism and TMRL learns how to use it during fine-tuning.
+                <strong>The need for action distribution interpolation.</strong> For an unseen goal position, the conditional action distribution p(a&nbsp;|&nbsp;c) remains narrow, lacking sufficient support for the agent to reach the goal. The marginal p(a) provides the necessary coverage, though too much variation near the goal. An optimal policy should more closely match p(a) at the beginning of the trajectory and p(a&nbsp;|&nbsp;c) at the end. Context-smoothed pre-training enables TMRL to interpolate between both distributions for more effective RL fine-tuning.
             </p>
         </div>
     </div>
@@ -406,27 +416,31 @@
 <section class="section compact" id="section-method">
     <div class="container is-max-desktop">
         <h2 class="title is-3">Method</h2>
-        <div class="content has-text-justified">
-            <p>
-                CSP trains a steerable policy by corrupting context inputs with a diffusion forward process and conditioning the policy on the noise level &sigma;. This yields a single policy that can be queried from sharp conditional behavior (&sigma;&nbsp;=&nbsp;0) to broad marginal behavior (&sigma;&nbsp;=&nbsp;T). TMRL then exposes &sigma; as an explicit control variable during RL fine-tuning, enabling a high-level policy to adaptively trade off exploration and exploitation across states and even within a single trajectory.
-            </p>
-        </div>
+
         <div class="publication-image" style="margin-top: 1.25rem;">
             <a class="img-wrap" href="#" data-lb-src="static/figures/method.png">
                 <img src="static/figures/method.png" alt="Method overview figure for context-smoothed pre-training and timestep-modulated RL.">
             </a>
             <p class="caption">
-                <strong>Method overview.</strong> CSP pre-trains a policy across context noise levels, and TMRL fine-tunes a high-level controller that dynamically selects conditioning strength to balance exploration and precision.
+                <strong>Timestep-modulated exploration via context smoothing.</strong> (<em>Left</em>) During pre-training, a steerable policy p<sub>&theta;</sub> is trained across all noise levels &sigma; by corrupting the context c via the kernel q<sub>&sigma;</sub>(c&#771;&nbsp;|&nbsp;c), producing a policy that can be queried at any conditioning strength at inference time. (<em>Right</em>) During RL fine-tuning, TMRL exposes p<sub>&theta;</sub> with a context-noise dial &sigma; as an explicit control variable for the high-level policy &pi;<sub>HL</sub>.
             </p>
         </div>
-        <div class="publication-image" style="margin-top: 0.35rem;">
+
+        <div class="content has-text-justified" style="margin-top: 2rem;">
+            <p>
+                CSP trains a steerable policy p<sub>&theta;</sub> by corrupting the context c via a forward diffusion kernel q<sub>&sigma;</sub>(c&#771;&nbsp;|&nbsp;c), producing a policy that can be queried at any conditioning strength at inference time. At low &sigma;, diffusion noise aliases nearby similar contexts, yielding a broad yet coherent distribution over actions from related contexts. As &sigma; increases, the policy smoothly transitions from the conditional distribution p(a&nbsp;|&nbsp;c) toward the marginal p(a). During RL fine-tuning, TMRL exposes &sigma; as a <em>context-noise dial</em> — an explicit control variable for the high-level policy &pi;<sub>HL</sub> — enabling it to dynamically modulate coverage: large &sigma; aliases the current context with nearby contexts for broader exploration, while small &sigma; sharpens conditioning for precise exploitation.
+            </p>
+        </div>
+
+        <div class="publication-image" style="margin-top: 2rem;">
             <a class="img-wrap" href="#" data-lb-src="static/figures/context_smoothing.gif" style="width: 40%; display: block; margin: 0 auto;">
                 <img src="static/figures/context_smoothing.gif" alt="Context smoothing visualization showing trajectory distributions as noise level σ increases from 0 to T." style="width: 100%; display: block;">
             </a>
             <p class="caption">
-                <strong>Context-smoothing behavior across &sigma;.</strong> As &sigma; increases, context corruption induces structured aliasing across nearby contexts, broadening coverage while preserving coherent action chunks. At low &sigma;, behavior is precise and strongly conditioned; at high &sigma;, behavior approaches the marginal and emphasizes coverage.
+                <strong>Empirical validation of context smoothing.</strong> As &sigma; increases, the corruption kernel q<sub>&sigma;</sub>(c&#771;&nbsp;|&nbsp;c) systematically aliases nearby contexts, broadening the induced action distribution while preserving coherent action chunks drawn from related contexts in the dataset. At &sigma;&nbsp;=&nbsp;0, conditioning sharpens to p(a&nbsp;|&nbsp;c); as &sigma;&nbsp;&rarr;&nbsp;T, the distribution approaches the marginal p(a).
             </p>
         </div>
+
     </div>
 </section>
 
@@ -502,7 +516,7 @@
         <h2 class="title is-3">Conditional &rarr; Marginal: Effect of Context Noise &sigma;</h2>
         <div class="content has-text-justified">
             <p>
-                At &sigma;&nbsp;=&nbsp;0, the policy behaves like a sharply conditioned model p(a&nbsp;|&nbsp;c). As &sigma; increases, contexts are progressively smoothed, expanding action support toward the marginal p(a). For LIBERO tasks, we show five independent rollouts at each noise level to visualize diversity; for cube-single, we show the composite trajectory view. Drag the slider to see how behavior broadens with context noise.
+                As the context-noise dial &sigma; increases from 0 to T, the policy smoothly transitions from the precise conditional distribution p(a&nbsp;|&nbsp;c) toward the broad marginal p(a). Nearby contexts become aliased, enabling the policy to borrow coherent action chunks from related states in the dataset — structured exploration rather than unstructured noise. For LIBERO tasks, we show five independent rollouts at each noise level to visualize behavioral diversity; for cube-single, we show a composite view across rollouts. Drag the slider to observe how action coverage broadens with context noise.
             </p>
         </div>
 
@@ -517,19 +531,23 @@
 
         <!-- Noise slider -->
         <div style="margin:1.1rem auto 0;">
-            <div style="display:grid; grid-template-columns:repeat(5,1fr); font-size:0.8rem; color:#555; margin-bottom:4px; text-align:center;">
-                <span style="text-align:left;">conditional &nbsp;(&sigma;&nbsp;=&nbsp;0)</span>
-                <span>&sigma;&nbsp;=&nbsp;T/4</span>
-                <span>&sigma;&nbsp;=&nbsp;T/2</span>
-                <span>&sigma;&nbsp;=&nbsp;3T/4</span>
-                <span style="text-align:right;">marginal &nbsp;(&sigma;&nbsp;=&nbsp;T)</span>
+            <div style="position:relative; height:1.4rem; margin-bottom:6px; font-size:0.8rem; color:#555;">
+                <span style="position:absolute; left:0%;   transform:translateX(0%);    white-space:nowrap;">conditional &nbsp;(σ = 0)</span>
+                <span style="position:absolute; left:25%;  transform:translateX(-50%);  white-space:nowrap;">σ = T/4</span>
+                <span style="position:absolute; left:50%;  transform:translateX(-50%);  white-space:nowrap;">σ = T/2</span>
+                <span style="position:absolute; left:75%;  transform:translateX(-50%);  white-space:nowrap;">σ = 3T/4</span>
+                <span style="position:absolute; left:100%; transform:translateX(-100%); white-space:nowrap;">marginal &nbsp;(σ = T)</span>
             </div>
-            <input type="range" id="sweep-slider" min="0" max="4" step="1" value="0"
-                   style="width:100%; accent-color:#248656; cursor:pointer;"
-                   oninput="sweepUpdate()">
-            <div style="font-family:'Courier New',monospace; font-size:0.88rem; color:#248656; font-weight:bold; text-align:center; margin-top:5px;">
-                &sigma; = <span id="sweep-sigma-display">0.00</span>
-                &nbsp;<span id="sweep-dist-label" style="color:#888; font-weight:normal;">(conditional)</span>
+        
+            <input type="range" id="sweep-slider" min="0" max="4" step="1" value="0" style="display:none;">
+            <!-- styled track -->
+            <div id="sweep-track" style="position:relative; height:10px; border-radius:999px; background:linear-gradient(to right, #248656, #aaa); cursor:pointer;">
+            <div id="sweep-thumb" style="position:absolute; top:50%; left:0%; transform:translate(-50%,-50%); width:22px; height:22px; border-radius:50%; background:#fff; border:2.5px solid #248656; cursor:grab; transition:border-color 0.15s; box-shadow:0 1px 6px rgba(0,0,0,0.13);"></div>
+            </div>
+        
+            <div style="font-family:'Courier New',monospace; font-size:0.88rem; color:#248656; font-weight:bold; text-align:center; margin-top:10px;">
+            σ = <span id="sweep-sigma-display">0.00</span>
+            &nbsp;<span id="sweep-dist-label" style="color:#888; font-weight:normal;">(conditional)</span>
             </div>
         </div>
 
@@ -768,37 +786,62 @@
         render();
     };
 
+    
+
     loadTasksFromFile();
 })();
 </script>
 
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
+<script>
+(function () {
+    var LEVELS      = ['0.00', '0.25', '0.50', '0.75', '1.00'];
+    var DIST_LABELS = ['(conditional)', '', '', '', '(marginal)'];
 
-<!-- Pre-training Results -->
-<section class="section compact" id="section-pretrain">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">Pre-training Results</h2>
-        <div class="content has-text-justified">
-            <p>
-                We compare pre-training procedures by measuring action coverage on unseen tasks via Success@K. Relative to standard BC and PostBC, context-smoothed pre-training (CSP) improves zero-shot coverage across all evaluated out-of-distribution settings.
-            </p>
-        </div>
-        <div style="width: 80%; margin: 0 auto;">
-            <div class="publication-image">
-                <a class="img-wrap" href="#" data-lb-src="static/figures/success_at_k.png">
-                    <img src="static/figures/success_at_k.png" alt="Success@K results comparing CSP, BC, and PostBC.">
-                </a>
-                <p class="caption">
-                    <strong>Context-smoothed pre-training improves action coverage before RL.</strong> Success@K is consistently higher with CSP than BC or PostBC, indicating broader and more reliable support over useful actions in out-of-distribution contexts.
-                </p>
-            </div>
-        </div>
-    </div>
-</section>
+    function setIdx(idx) {
+        var pct = idx / 4;
+        // hero slider
+        var heroThumb = document.getElementById('hero-thumb');
+        if (heroThumb) heroThumb.style.left = (pct * 100) + '%';
+        var heroSigma = document.getElementById('hero-sigma-display');
+        if (heroSigma) heroSigma.textContent = LEVELS[idx];
+        var heroDist = document.getElementById('hero-dist-label');
+        if (heroDist) heroDist.textContent = DIST_LABELS[idx];
+        // sweep slider
+        var sweepThumb = document.getElementById('sweep-thumb');
+        if (sweepThumb) sweepThumb.style.left = (pct * 100) + '%';
+        var sweepSigma = document.getElementById('sweep-sigma-display');
+        if (sweepSigma) sweepSigma.textContent = LEVELS[idx];
+        var sweepDist = document.getElementById('sweep-dist-label');
+        if (sweepDist) sweepDist.textContent = DIST_LABELS[idx];
+        // drive underlying input + sweepUpdate
+        var slider = document.getElementById('sweep-slider');
+        if (slider) { slider.value = idx; if (typeof sweepUpdate === 'function') sweepUpdate(); }
+    }
+
+    function makeDraggable(trackId) {
+        var track = document.getElementById(trackId);
+        if (!track) return;
+        var dragging = false;
+
+        function pct(e) {
+            var r = track.getBoundingClientRect();
+            var x = e.touches ? e.touches[0].clientX : e.clientX;
+            return Math.max(0, Math.min(1, (x - r.left) / r.width));
+        }
+        function apply(e) { setIdx(Math.round(pct(e) * 4)); }
+
+        track.addEventListener('mousedown',  function (e) { dragging = true; apply(e); e.preventDefault(); });
+        document.addEventListener('mousemove', function (e) { if (dragging) apply(e); });
+        document.addEventListener('mouseup',   function ()  { dragging = false; });
+        track.addEventListener('touchstart', function (e) { dragging = true; apply(e); e.preventDefault(); }, { passive: false });
+        document.addEventListener('touchmove', function (e) { if (dragging) apply(e); }, { passive: false });
+        document.addEventListener('touchend',  function ()  { dragging = false; });
+    }
+
+    makeDraggable('hero-track');
+    makeDraggable('sweep-track');
+})();
+</script>
 
 <section class="section compact">
     <div class="container is-max-desktop">
@@ -810,19 +853,37 @@
 <section class="section compact" id="section-sim">
     <div class="container is-max-desktop">
         <h2 class="title is-3">Simulation Results</h2>
+
         <div class="content has-text-justified">
             <p>
-                We evaluate TMRL on OGBench and LIBERO tasks against prior RL-with-priors baselines. TMRL reaches near-100% success on both OGBench tasks, outperforms strong baselines on final performance, and is the only method that reliably solves the longer-horizon LIBERO-90 setting where broader yet coherent exploration is required.
+                We first compare pre-training procedures by measuring <em>demonstrator action coverage</em> on unseen tasks via Success@K — the fraction of out-of-distribution initial states for which at least one of K base policy rollouts succeeds. CSP outperforms both standard BC and PostBC across all K values, demonstrating broader action support before any RL fine-tuning.
             </p>
         </div>
-        <div class="publication-image">
+        <div style="width: 80%; margin: 1.25rem auto 0;">
+            <div class="publication-image">
+                <a class="img-wrap" href="#" data-lb-src="static/figures/success_at_k.png">
+                    <img src="static/figures/success_at_k.png" alt="Success@K results comparing CSP, BC, and PostBC.">
+                </a>
+                <p class="caption">
+                    <strong>Context-smoothed pre-training unlocks better action coverage before RL fine-tuning.</strong> CSP achieves greater Success@K across all K on both tasks. The gap is most pronounced on cube-single, where BC and PostBC have near-zero success at all K.
+                </p>
+            </div>
+        </div>
+
+        <div class="content has-text-justified" style="margin-top: 2rem;">
+            <p>
+                Next, we show that this improved coverage translates to better RL performance. TMRL consistently outperforms prior approaches across tasks spanning states, images, and language instructions, achieving an overall 101% improvement over the best-performing baseline across OGBench tasks. In the long-horizon LIBERO-90 setting, only TMRL explores sufficiently to achieve non-trivial success rates, leveraging action sequences from related tasks via context aliasing.
+            </p>
+        </div>
+        <div class="publication-image" style="margin-top: 1.25rem;">
             <a class="img-wrap" href="#" data-lb-src="static/figures/sim_results.png">
                 <img src="static/figures/sim_results.png" alt="Simulation RL fine-tuning results across OGBench and LIBERO tasks.">
             </a>
             <p class="caption">
-                <strong>Simulation results.</strong> TMRL consistently improves RL sample efficiency and final success by adaptively modulating context smoothing. In hard OOD settings, this enables exploration beyond collapsed conditional support while remaining grounded in coherent behaviors from data.
+                <strong>RL success rates for simulation tasks.</strong> TMRL attains near-100% success on both OGBench tasks, outperforming the best baselines by 14% in pointmaze-giant and 200% in cube-single. In libero-goal, TMRL and RLPD reach 100% success. For the longer-horizon libero-90, only TMRL achieves non-trivial success rates by borrowing coherent behaviors across tasks via context aliasing.
             </p>
         </div>
+
     </div>
 </section>
 
@@ -836,18 +897,18 @@
 <section class="section compact" id="real-world-section">
     <div class="container is-max-desktop">
         <h2 class="title is-3">Real-World RL with Context-Smoothed &pi;<sub>0</sub></h2>
-        <div class="content has-text-justified">
-            <p>
-                We apply CSP to the <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank">&pi;<sub>0</sub></a> vision-language-action model by injecting forward-diffusion noise into its VLM embedding context during pre-training. This produces a context-smoothed &pi;<sub>0</sub> whose conditioning strength can be modulated at inference time — enabling TMRL to dynamically interpolate between broad coverage and precise execution during real-world fine-tuning.
-            </p>
-        </div>
         <div class="publication-image" style="margin-top:1.25rem;">
             <video class="static-video" autoplay loop muted playsinline
                    style="width:100%; border-radius:8px; background:#111; display:block;">
-                <source src="static/videos/cs_vla.mp4" type="video/mp4">
+                <source src="static/videos/csp_vla.mp4" type="video/mp4">
             </video>
             <p class="caption">
-                <strong>Context-smoothing applied to &pi;<sub>0</sub>.</strong> VLM embedding contexts are corrupted with a diffusion forward process parameterized by &sigma;, producing a spectrum from sharp conditional behavior (&sigma;&nbsp;=&nbsp;0) to broad marginal behavior (&sigma;&nbsp;=&nbsp;T). TMRL then learns to select &sigma; dynamically during real-world RL fine-tuning.
+                <strong>Context-smoothed pre-training for vision-language-action models.</strong> VLM embedding contexts are corrupted via the forward diffusion kernel q<sub>&sigma;</sub>(c&#771;&nbsp;|&nbsp;c), producing a spectrum from sharply conditioned behavior (&sigma;&nbsp;=&nbsp;0) to broad marginal behavior (&sigma;&nbsp;=&nbsp;T). TMRL trains a high-level policy &pi;<sub>HL</sub> to dynamically select &sigma; during real-world RL fine-tuning.
+            </p>
+        </div>
+        <div class="content has-text-justified" style="margin-top: 2rem;">
+            <p>
+                We demonstrate that TMRL enables effective adaptation of VLA policies in the real world. We fine-tune a context-smoothed <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank">&pi;<sub>0</sub></a> on a WidowX 250 6-DoF arm (<a href="https://rail-berkeley.github.io/bridgedata/" target="_blank">BridgeData-v2</a>) and a Franka Panda 7-DoF arm (<a href="https://droid-dataset.github.io/" target="_blank">DROID</a>) by injecting forward-diffusion noise into the VLM embedding context c during pre-training. This produces a context-smoothed steerable base policy whose conditioning strength TMRL can dynamically modulate — enabling it to alias current contexts with semantically related tasks in the dataset and borrow coherent behaviors during real-world interaction.
             </p>
         </div>
         <div class="publication-image" style="margin-top:1.5rem;">
@@ -855,7 +916,7 @@
                 <img src="static/figures/real_results.png" alt="Real-world RL fine-tuning results on WidowX and DROID robots.">
             </a>
             <p class="caption">
-                <strong>Real-world results.</strong> The pre-trained base policy often reaches for the wrong object and fails to complete tasks reliably. TMRL improves to near-perfect success in under one hour of interaction by dynamically broadening and sharpening behavior as needed during fine-tuning.
+                <strong>Real-world RL fine-tuning results.</strong> The pre-trained base policy is unable to solve tasks successfully (often reaching for the wrong object). Fine-tuning with TMRL improves to near-perfect success rates in under one hour of interaction — while DSRL, which cannot expand coverage beyond the base policy's conditional support, fails to learn any task.
             </p>
         </div>
     </div>
@@ -1205,12 +1266,10 @@ document.querySelectorAll('video.static-video').forEach(function (vid) {
 (function () {
     var TOC_ENTRIES = [
         { id: 'section-overview',   label: 'Overview' },
-        { id: 'section-motivation', label: 'Action Distribution Interpolation' },
+        { id: 'section-motivation', label: 'The Need for Interpolation' },
         { id: 'section-method',     label: 'Method' },
-        { id: 'noise-sweep-section',label: 'Effect of Context Noise \u03c3' },
-        { id: 'section-pretrain',   label: 'Pre-training Results' },
         { id: 'section-sim',        label: 'Simulation Results' },
-        { id: 'real-world-section', label: 'Real-World RL with \u03c0\u2080' },
+        { id: 'real-world-section', label: 'Real-World Post-training with \u03c0\u2080' },
         { id: 'real-world-rollout-compare', label: 'Rollouts & Learning Curves' },
         { id: 'section-bibtex',     label: 'BibTeX' },
     ];
