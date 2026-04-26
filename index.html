@@ -3,1420 +3,1281 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TMRL: Context-Smoothed Pre-training Enables Efficient RL via Diffusion Timestep Modulation</title>
-    <meta name="description" content="Fine-tuning pre-trained robot policies with RL is promising, but standard behavior cloning produces narrow, overconfident action distributions. TMRL (with Context-Smoothed Pre-training) injects forward-diffusion noise into policy inputs and modulates the diffusion timestep during RL, improving sample efficiency; real-world manipulation in under one hour.">
+    <title>TMRL: Context-Smoothed Pre-training Enables Efficient Policy Post-training</title>
+    <meta name="description" content="TMRL bridges BC pre-training and RL post-training, enabling real-world robot learning in under one hour.">
 
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
 
     <style>
         :root {
-            --link-color: #248656;
-            --divider-color: #e5e5e5;
-            --accent-color: #248656;
+            --green: #1f7a4f;
+            --green-light: #e8f5ee;
+            --green-mid: #2d9e66;
+            --ink: #1a1a1a;
+            --ink-soft: #444;
+            --ink-muted: #777;
+            --rule: #e0e0e0;
+            --bg: #ffffff;
+            --bg-off: #fafafa;
         }
+
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
-            font-family: 'Palatino', sans-serif;
-            background: #ffffff;
+            font-family: 'Palatino', Georgia, serif;
+            background: var(--bg);
+            color: var(--ink);
+            opacity: 0;
+            transition: opacity 0.35s ease;
         }
+        body.loaded { opacity: 1; }
 
-        .publication-title {
-            font-family: 'Palatino', sans-serif;
+        /* ── TYPOGRAPHY ── */
+        .sans { font-family: 'Palatino', serif; }
+
+        h1, h2, h3 { font-family: 'Palatino', serif; font-weight: 600; }
+
+        .pub-title {
+            font-size: clamp(1.7rem, 4vw, 2.6rem);
+            line-height: 1.18;
             font-weight: 700;
-            font-size: 2.5rem;
-            line-height: 1.2;
+            letter-spacing: -0.01em;
         }
 
-        .publication-authors,
-        .publication-venue {
-            font-family: 'Palatino', sans-serif;
+        .section-head {
+            font-family: 'Palatino', serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--green);
+            margin-bottom: 1.1rem;
+            margin-top: 0;
         }
 
-        .publication-authors a {
-            color: var(--accent-color);
-            text-decoration: none;
+        .body-text {
+            font-size: 1.08rem;
+            line-height: 1.72;
+            color: var(--ink-soft);
         }
 
-        .publication-authors a:hover {
-            text-decoration: none;
-            color: #00e676;
-        }
-
-        a:hover {
-            text-decoration: none !important;
-            color: #00e676;
-        }
-
-        .author-block {
-            display: inline-block;
-            margin: 0 0.25rem;
-        }
-
-        .publication-venue {
-            color: #555;
-            font-size: 1.1rem;
-            margin-top: 0.5rem;
-        }
-
-        .link-block a {
-            margin: 0.25rem;
-        }
-
-        .section {
-            padding: 0.75rem 1.5rem;
-        }
-
-        .section.compact {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-        }
-
-        .section.compact > *:last-child {
-            margin-bottom: 0;
-        }
-
-        .container.is-max-desktop {
+        /* ── LAYOUT ── */
+        .page-section {
+            padding: 2.5rem 1.5rem;
             max-width: 960px;
+            margin: 0 auto;
+            scroll-margin-top: 4rem; /* overridden dynamically by JS */
         }
+        .page-section + .page-section { padding-top: 0; }
 
-        h2.title.is-3 {
-            font-family: 'Palatino', sans-serif;
-            margin-top: 0.1rem;
-            margin-bottom: 1rem;
-            color: var(--accent-color);
-        }
-
-        .content {
-            font-size: 1.05rem;
-            line-height: 1.7;
-        }
-
-        .content.has-text-justified {
-            text-align: justify;
-        }
-
-        /* Hero tagline + stat strip */
-        .hero-tagline {
-            margin: 1.5rem auto 0;
-            font-size: 1.3rem;
-            color: #333;
-            max-width: 760px;
-            line-height: 1.5;
-        }
-
-        .hero-stats {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            margin-top: 1.75rem;
-            flex-wrap: wrap;
-        }
-
-        .hero-stat {
-            text-align: center;
-        }
-
-        .hero-stat .num {
-            font-size: 2.4rem;
-            font-weight: 700;
-            color: var(--accent-color);
-            line-height: 1;
-            font-family: 'Palatino', serif;
-        }
-
-        .hero-stat .label {
-            font-size: 0.78rem;
-            color: #666;
-            margin-top: 6px;
-            letter-spacing: 0.06em;
-            font-family: 'Palatino', serif;
-        }
-
-        @media (max-width: 600px) {
-            .hero-stats { gap: 1.5rem; }
-            .hero-stat .num { font-size: 1.9rem; }
-        }
-
-        /* Pull-quote for method section */
-        .pull-quote {
-            font-family: 'Palatino', serif;
-            font-size: 1.35rem;
-            line-height: 1.5;
-            color: #248656;
-            border-left: 4px solid #248656;
-            padding: 0.4rem 0 0.4rem 1.25rem;
-            margin: 1.75rem 0 1.25rem;
-            font-style: italic;
-        }
-
-        /* Headline result callout (real-world section) */
-        .headline-callout {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2rem;
-            margin: 2rem 0;
-            padding: 1.5rem 2rem;
-            background: #f4faf6;
-            border-left: 5px solid var(--accent-color);
-            border-radius: 6px;
-            flex-wrap: wrap;
-        }
-
-        .headline-callout .big-num {
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--accent-color);
-            line-height: 1;
-            font-family: 'Palatino', serif;
-            white-space: nowrap;
-        }
-
-        .headline-callout .text {
-            font-size: 1.05rem;
-            color: #333;
-            line-height: 1.5;
-            max-width: 520px;
-        }
-
-        /* .publication-image {
-            margin: 0.75rem 0;
-        }
-
-        .publication-image img {
-            width: 100%;
-            height: auto;
-            border-radius: 4px;
-        } */
-        .publication-image img {
-            cursor: zoom-in;
-            transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94),
-                        box-shadow 0.35s ease;
-        }
-        .publication-image .img-wrap {
-            display: block;
-            overflow: visible;
-            border-radius: 4px;
-            position: relative;
-        }
-        .publication-image .img-wrap img {
-            border-radius: 4px;
-            transform-origin: center center;
-        }
-        .publication-image .img-wrap:hover img {
-            transform: scale(1.04);
-            box-shadow: 0 10px 36px rgba(0,0,0,0.16);
-        }
-        .publication-image .img-wrap:hover {
-            z-index: 2;
-        }
-
-        /* Lightbox overlay */
-        .lb-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.78);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 9999; opacity: 0; pointer-events: none;
-            transition: opacity 0.2s;
-        }
-        .lb-overlay.open { opacity: 1; pointer-events: auto; }
-        .lb-overlay img { max-width: 90vw; max-height: 88vh; border-radius: 6px; }
-        .lb-close { position: absolute; top: 16px; right: 20px; background: rgba(255,255,255,0.15);
-            border: none; color: white; border-radius: 50%; width: 32px; height: 32px;
-            font-size: 18px; cursor: pointer; }
-
-        .publication-image .caption {
-            font-style: italic;
-            color: #555;
-            font-size: 0.92rem;
-            margin-top: 0.75rem;
-            line-height: 1.5;
-        }
-
-        hr {
-            background-color: var(--divider-color);
-            height: 2px;
+        hr.rule {
             border: none;
-            border-radius: 5px;
-            margin: 0.75rem 0;
+            border-top: 1px solid var(--rule);
+            margin: 0.25rem 0;
         }
 
-        .hero.is-light {
-            background: #ffffff;
+        /* ── HERO ── */
+        .hero-wrap {
+            padding: 3.5rem 1.5rem 0;
+            text-align: center;
+            max-width: 960px;
+            margin: 0 auto;
         }
 
-        .hero-body {
-            padding: 3rem 1.5rem 1.5rem;
+        .author-list {
+            font-family: 'Palatino', serif;
+            font-size: 1rem;
+            margin-top: 1.1rem;
+            color: var(--ink-soft);
+        }
+        .author-list a { color: var(--green); text-decoration: none; }
+        .author-list a:hover { color: var(--green-mid); }
+
+        .affil {
+            font-family: 'Palatino', serif;
+            font-size: 0.88rem;
+            color: var(--ink-muted);
+            margin-top: 0.4rem;
         }
 
-        /* Bibtex */
-        .bibtex-box {
-            background: #f8f8f8;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1rem 1.25rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.82rem;
-            line-height: 1.5;
-            overflow-x: auto;
-            white-space: pre;
-            color: #333;
+        /* ── STAT STRIP ── */
+        .stat-strip {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin: 2rem auto 0;
+            border: 1px solid var(--rule);
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 680px;
+        }
+        .stat-item {
+            flex: 1;
+            padding: 1.1rem 0.75rem;
+            text-align: center;
+            border-right: 1px solid var(--rule);
+            background: var(--bg);
+        }
+        .stat-item:last-child { border-right: none; }
+        .stat-num {
+            font-family: 'Palatino', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--green);
+            line-height: 1;
+        }
+        .stat-label {
+            font-family: 'Palatino', serif;
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-muted);
+            margin-top: 5px;
         }
 
-        /* Buttons */
-        .button.is-rounded {
-            font-family: 'Google Sans', sans-serif;
+        /* ── BUTTONS ── */
+        .btn-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 0.9rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 1.1rem;
+            border-radius: 6px;
+            font-family: 'Palatino', serif;
+            font-size: 0.88rem;
             font-weight: 500;
+            text-decoration: none;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
         }
+        .btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
+        .btn-primary:hover { background: #186040; color: #fff; }
+        .btn-outline { background: #fff; color: var(--green); border-color: var(--green); }
+        .btn-outline:hover { background: var(--green-light); }
+        .btn-ghost { background: #f0f0f0; color: var(--ink-soft); border-color: #ddd; opacity: 0.65; cursor: default; }
 
-        .button.is-dark {
-            background-color: var(--accent-color);
-        }
-
-        .button.is-dark:hover {
-            background-color: #20784d;
-        }
-
-        /* Footer */
-        .footer {
-            padding: 2rem 1.5rem;
-            background: #fafafa;
-        }
-
-        .footer .content {
-            font-size: 0.9rem;
-            color: #888;
-        }
-
-        /* Sticky section navbar */
+        /* ── NAV ── */
         #section-nav {
             position: sticky;
             top: 0;
-            z-index: 100;
-            background: rgba(255,255,255,0.96);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid #e8e8e8;
-            padding: 0;
+            z-index: 200;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--rule);
         }
+        #nav-hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0 1rem;
+            border-bottom: 1px solid var(--rule);
+            height: 2.8rem;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        #nav-hero.visible { opacity: 1; }
+        #nav-hero-title {
+            font-family: 'Palatino', serif;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 1;
+            min-width: 0;
+        }
+        #nav-hero-authors {
+            font-family: 'Palatino', serif;
+            font-size: 0.7rem;
+            color: var(--ink-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #nav-hero-btns { display: flex; gap: 0.35rem; flex-shrink: 0; }
+        #nav-crumb { display: none; }
+        @media (max-width: 700px) { #nav-hero { display: none; } }
         #section-nav ul {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
             list-style: none;
-            margin: 0;
-            padding: 0;
-            gap: 0;
+            margin: 0; padding: 0;
         }
-        #section-nav li { margin: 0; }
         #section-nav a {
             display: block;
-            padding: 0.7rem 1.1rem;
+            padding: 0.65rem 1rem;
             font-family: 'Palatino', serif;
-            font-size: 0.8rem;
-            color: #777;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            color: var(--ink-muted);
             text-decoration: none;
             border-bottom: 2px solid transparent;
             transition: color 0.15s, border-color 0.15s;
             white-space: nowrap;
         }
-        #section-nav a:hover { color: #248656; }
-        #section-nav a.nav-active {
-            color: #248656;
-            border-bottom-color: #248656;
+        #section-nav a:hover { color: var(--green); }
+        #section-nav a.active { color: var(--green); border-bottom-color: var(--green); }
+
+        @media (max-width: 700px) { #section-nav { display: none; } }
+
+        /* ── INSIGHT BOX (replaces giant paragraphs) ── */
+        .insight-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        @media (max-width: 640px) { .insight-grid { grid-template-columns: 1fr; } }
+
+        .insight-card {
+            border: 1px solid var(--rule);
+            border-radius: 10px;
+            padding: 1.1rem 1.2rem;
+            background: var(--bg);
+        }
+        .insight-card .ic-label {
+            font-family: 'Palatino', serif;
+            font-size: 0.7rem;
             font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: 0.4rem;
+        }
+        .insight-card .ic-title {
+            font-family: 'Palatino', serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 0.35rem;
+            line-height: 1.3;
+        }
+        .insight-card .ic-body {
+            font-size: 0.97rem;
+            line-height: 1.6;
+            color: var(--ink-soft);
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .publication-title {
-                font-size: 1.6rem;
-            }
-            .hero-body {
-                padding: 2rem 1rem 1rem;
-            }
-            .hero-tagline {
-                font-size: 1.1rem;
-            }
-            #section-nav {
-                display: none;
-            }
+        /* ── PULL QUOTE ── */
+        .pull-quote {
+            border-left: 3px solid var(--green);
+            padding: 0.5rem 0 0.5rem 1.2rem;
+            margin: 1.75rem 0;
+            font-size: 1.28rem;
+            font-style: italic;
+            color: var(--green);
+            line-height: 1.5;
         }
 
-        /* ── Smooth load & transitions ── */
-        body {
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        /* ── KEY RESULT CALLOUT ── */
+        .result-callout {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            background: var(--green-light);
+            border-left: 4px solid var(--green);
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
         }
-        body.page-loaded {
-            opacity: 1;
+        .result-callout .big { font-size: 2.4rem; font-weight: 700; color: var(--green); line-height: 1; font-family: 'Palatino', serif; white-space: nowrap; }
+        .result-callout .desc { font-size: 1rem; color: var(--ink-soft); line-height: 1.5; flex: 1; min-width: 200px; }
+
+        /* ── TRADEOFF INTERACTIVE ── */
+        .tradeoff-widget {
+            border: 1px solid var(--rule);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 1.5rem 0;
         }
-        #sweep-grid {
-            transition: opacity 0.18s ease;
+        .tradeoff-header {
+            background: var(--ink);
+            color: #fff;
+            padding: 0.9rem 1.2rem;
+            font-family: 'Palatino', serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .static-video {
-            opacity: 0;
-            transition: opacity 0.4s ease;
+        .tradeoff-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-mid); }
+        .tradeoff-body { padding: 1.2rem 1.4rem; }
+
+        /* ── COMPARISON TABLE ── */
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Palatino', serif;
+            font-size: 0.88rem;
+            margin: 1.25rem 0;
         }
-        .static-video.vid-ready {
-            opacity: 1;
+        .compare-table th {
+            font-weight: 600;
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            border-bottom: 2px solid var(--rule);
+            color: var(--ink-soft);
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
-        .sweep-vid-cell {
+        .compare-table td {
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--rule);
+            color: var(--ink-soft);
+            vertical-align: top;
+        }
+        .compare-table tr:last-child td { border-bottom: none; }
+        .compare-table tr.ours td { background: var(--green-light); font-weight: 500; color: var(--ink); }
+        .compare-table tr.ours td:first-child { color: var(--green); font-weight: 600; }
+        .check { color: var(--green); font-weight: 700; }
+        .cross { color: #c0392b; }
+        .partial { color: #e67e22; }
+
+        /* ── IMAGE / VIDEO ── */
+        .pub-img img {
+            width: 100%;
+            border-radius: 8px;
+            cursor: zoom-in;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform-origin: center;
+        }
+        .pub-img img:hover {
+            transform: scale(1.03);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.14);
+        }
+        .cap {
+            font-size: 0.88rem;
+            color: var(--ink-muted);
+            font-style: italic;
+            margin-top: 0.65rem;
+            line-height: 1.55;
+        }
+        .cap strong { font-style: normal; color: var(--ink-soft); }
+
+        /* ── SWEEP TABS ── */
+        .tab-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+        .tab-btn {
+            font-family: 'Palatino', serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 4px 14px;
+            border: 1.5px solid var(--rule);
+            border-radius: 100px;
+            background: #fff;
+            color: var(--ink-muted);
+            cursor: pointer;
+            transition: all 0.14s;
+            white-space: nowrap;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--green);
+            color: #fff;
+            border-color: var(--green);
+        }
+
+        /* ── SWEEP SLIDER ── */
+        .sigma-track-wrap { margin: 1rem 0 0.5rem; }
+        .sigma-labels {
+            position: relative;
+            height: 1.3em;
+            margin-bottom: 6px;
+            font-family: 'Palatino', serif;
+            font-size: 0.72rem;
+            color: var(--ink-muted);
+        }
+        .sigma-labels span {
+            position: absolute;
+            white-space: nowrap;
+            transform: translateX(-50%);
+        }
+        .sigma-labels span:first-child { transform: none; }
+        .sigma-labels span:last-child  { transform: translateX(-100%); }
+        .sigma-labels span:nth-child(1) { left: 0%; }
+        .sigma-labels span:nth-child(2) { left: 25%; }
+        .sigma-labels span:nth-child(3) { left: 50%; }
+        .sigma-labels span:nth-child(4) { left: 75%; }
+        .sigma-labels span:nth-child(5) { left: 100%; }
+        .sigma-track {
+            position: relative;
+            height: 8px;
+            border-radius: 99px;
+            background: linear-gradient(to right, var(--green), #bbb);
+            cursor: pointer;
+        }
+        .sigma-thumb {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(-50%, -50%);
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2.5px solid var(--green);
+            box-shadow: 0 1px 5px rgba(0,0,0,0.12);
+            cursor: grab;
+        }
+        .sigma-readout {
+            font-family: 'Palatino', monospace;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--green);
+            text-align: center;
+            margin-top: 8px;
+        }
+        .sigma-readout span { color: var(--ink-muted); font-weight: 400; }
+
+        /* Sweep grids */
+        #sweep-grid.grid-composite { max-width: 520px; margin: 0 auto; }
+        #sweep-grid.grid-multi {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+        @media (max-width: 700px) { #sweep-grid.grid-multi { grid-template-columns: repeat(3, 1fr); } }
+        #sweep-grid { transition: opacity 0.16s ease; }
+        .sweep-cell { border-radius: 6px; overflow: hidden; background: #111; line-height: 0; }
+        .sweep-cell video { width: 100%; display: block; border-radius: 6px; }
+
+        /* ── STATIC VIDEO ── */
+        .static-vid { opacity: 0; transition: opacity 0.4s ease; width: 100%; border-radius: 8px; background: #111; display: block; }
+        .static-vid.ready { opacity: 1; }
+
+        /* ── LIGHTBOX ── */
+        .lb { position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .lb.open { opacity: 1; pointer-events: auto; }
+        .lb img { max-width: 92vw; max-height: 90vh; border-radius: 6px; }
+        .lb-x { position: absolute; top: 14px; right: 18px; background: rgba(255,255,255,0.12); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+        #lb-vid { max-width: 90vw; max-height: 85vh; border-radius: 6px; display: none; }
+
+        /* ── ROLLOUT SECTION ── */
+        .rollout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+        @media (max-width: 600px) { .rollout-grid { grid-template-columns: 1fr; } }
+        .rollout-col { border: 1px solid var(--rule); border-radius: 10px; padding: 0.85rem; background: var(--bg-off); }
+        .rollout-col-title { font-family: 'Palatino', serif; font-size: 0.8rem; font-weight: 600; color: var(--green); text-align: center; margin-bottom: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase; }
+        .rollout-vid-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .rollout-cell { border-radius: 5px; overflow: hidden; background: #111; line-height: 0; cursor: zoom-in; position: relative; }
+        .rollout-cell::after { content: '⤢'; position: absolute; bottom: 4px; right: 5px; font-size: 0.7rem; color: rgba(255,255,255,0.55); pointer-events: none; }
+        .rollout-cell video { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+
+        .learning-wrap { border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--bg-off); }
+        .learning-title { font-family: 'Palatino', serif; font-size: 0.8rem; font-weight: 600; color: var(--green); text-align: center; padding: 0.65rem; border-bottom: 1px solid var(--rule); letter-spacing: 0.04em; text-transform: uppercase; }
+        #rw-learning-video { width: 100%; display: block; }
+
+        /* ── BIBTEX ── */
+        .bibtex-box {
+            background: #f7f7f7;
+            border: 1px solid #e4e4e4;
+            border-radius: 8px;
+            padding: 1rem 1.2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+            color: #333;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            padding: 1.75rem 1.5rem;
+            background: var(--bg-off);
+            border-top: 1px solid var(--rule);
+            text-align: center;
+            font-family: 'Palatino', serif;
+            font-size: 0.82rem;
+            color: var(--ink-muted);
+        }
+
+        /* ── SHIMMER ── */
+        .shimmer {
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
             animation: shimmer 1.4s infinite;
         }
-        @keyframes shimmer {
-            0%   { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ── RW TABS ── */
+        .rw-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.1rem; }
+        .rw-tab {
+            font-family: 'Palatino', serif; font-size: 0.8rem; font-weight: 500;
+            padding: 4px 14px; border: 1.5px solid var(--rule); border-radius: 100px;
+            background: #fff; color: var(--ink-muted); cursor: pointer; transition: all 0.14s;
+        }
+        .rw-tab.active { background: var(--green); color: #fff; border-color: var(--green); }
+
+        /* ── EXPLORATION CALLOUT ── */
+        .exploration-modes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border: 1px solid var(--rule);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+        @media (max-width: 600px) { .exploration-modes { grid-template-columns: 1fr; } }
+        .exp-mode {
+            padding: 1rem 1.1rem;
+            border-right: 1px solid var(--rule);
+            background: var(--bg);
+        }
+        .exp-mode:last-child { border-right: none; }
+        .exp-mode-label {
+            font-family: 'Palatino', serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+        .exp-mode-label.bad { color: #c0392b; }
+        .exp-mode-label.ok { color: #e67e22; }
+        .exp-mode-label.good { color: var(--green); }
+        .exp-mode-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--ink); }
+        .exp-mode-body { font-size: 0.88rem; color: var(--ink-muted); line-height: 1.5; }
+        .exp-mode.highlight { background: var(--green-light); }
+
+        /* sub-heading in sections */
+        .sub-head {
+            font-family: 'Palatino', serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--green);
+            margin: 1.5rem 0 0.6rem;
+        }
+
+        code.instruction-box {
+            display: block;
+            font-family: 'Palatino', monospace;
+            font-size: 0.88rem;
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 7px 14px;
+            color: #222;
+            margin: 0 auto 1rem;
+            max-width: 640px;
         }
     </style>
 </head>
 <body>
 
-<!-- Hero / Header -->
-<section class="hero is-light">
-    <div class="hero-body">
-        <div class="container is-max-desktop has-text-centered">
-            <h1 class="publication-title">
-                <span style="color: #248656;">TMRL</span>: Context-Smoothed Pre-training Enables Efficient RL via Diffusion Timestep Modulation
-            </h1>
+<!-- ══════════ HERO ══════════ -->
+<div class="hero-wrap">
+    <h1 class="pub-title">
+        <span style="color:var(--green)">TMRL</span>: Context-Smoothed Pre-training Enables<br>Efficient Policy Post-training
+    </h1>
 
-            <div class="publication-authors" style="margin-top: 1.25rem; font-size: 1.15rem;">
-                <span class="author-block"><a href="https://matthewh6.github.io/" target="_blank">Matthew Hong<sup>1</sup></a>,</span>
-                <span class="author-block"><a href="https://www.jessezhang.net/" target="_blank">Jesse Zhang<sup>1</sup></a>,</span>
-                <span class="author-block"><a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en/" target="_blank">Anusha Nagabandi<sup>2</sup></a>,</span>
-                <span class="author-block"><a href="https://abhishekunique.github.io/" target="_blank">Abhishek Gupta<sup>1</sup></a></span>
-            </div>
+    <div class="author-list">
+        <a href="https://matthewh6.github.io/" target="_blank">Matthew Hong<sup>1</sup></a>,&ensp;
+        <a href="https://www.jessezhang.net/" target="_blank">Jesse Zhang<sup>1</sup></a>,&ensp;
+        <a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en/" target="_blank">Anusha Nagabandi<sup>2</sup></a>,&ensp;
+        <a href="https://abhishekunique.github.io/" target="_blank">Abhishek Gupta<sup>1</sup></a>
+    </div>
+    <div class="affil">
+        <sup>1</sup>University of Washington &nbsp;&nbsp; <sup>2</sup>Amazon FAR (Frontier AI &amp; Robotics)
+    </div>
 
-            <div class="publication-venue" style="margin-top: 0.5rem;">
-                <span><sup>1</sup>University of Washington</span> &nbsp; <sup>2</sup>Amazon FAR (Frontier AI & Robotics)<br>
-                <!-- <span><sup>*</sup>Work done while interning at UW</span> -->
-            </div>
+    <div class="btn-row">
+        <span class="btn btn-ghost">
+            <i class="ai ai-arxiv"></i> arXiv (coming soon)
+        </span>
+        <span class="btn btn-ghost">
+            <i class="fab fa-github"></i> Code (coming soon)
+        </span>
+    </div>
+</div>
 
-            <!-- Tagline
-            <div class="hero-tagline">
-                Real-world VLA RL fine-tuning in
-                <strong style="color:#248656;">under one hour</strong>
-                — by smoothly interpolating between imitation and exploration.
-            </div> -->
-
-            <!-- Stat strip -->
-            <div class="hero-stats">
-                <div class="hero-stat">
-                    <div class="num">&lt; 1 hr</div>
-                    <div class="label">REAL-WORLD FINE-TUNING</div>
-                </div>
-                <div class="hero-stat">
-                    <div class="num">+101%</div>
-                    <div class="label">OVER BEST BASELINE</div>
-                </div>
-                <div class="hero-stat">
-                    <div class="num">states &rarr; VLAs</div>
-                    <div class="label">DROPS INTO ANY POLICY</div>
-                </div>
-            </div>
-
-            <!-- Links -->
-            <div class="link-block" style="margin-top: 1.75rem;">
-                <span class="button is-dark is-rounded" style="opacity:0.7; cursor:default;">
-                    <span class="icon"><i class="ai ai-arxiv"></i></span>
-                    <span>arXiv</span>
-                </span>
-                <a class="button is-dark is-rounded" href="https://github.com/matthewh6/tmrl" target="_blank">
-                    <span class="icon"><i class="fab fa-github"></i></span>
-                    <span>Code</span>
-                </a>
-            </div>
-
+<!-- ══════════ NAV ══════════ -->
+<nav id="section-nav">
+    <div id="nav-hero">
+        <span id="nav-hero-title"><span style="color:var(--green)">TMRL</span>: Context-Smoothed Pre-training Enables Efficient Policy Post-training</span>
+        <span id="nav-hero-authors">M. Hong, J. Zhang, A. Nagabandi, A. Gupta</span>
+        <div id="nav-hero-btns">
+            <span class="btn btn-ghost" style="padding:0.18rem 0.6rem; font-size:0.73rem;"><i class="ai ai-arxiv"></i> arXiv</span>
+            <span class="btn btn-ghost" style="padding:0.18rem 0.6rem; font-size:0.73rem;"><i class="fab fa-github"></i> Code</span>
         </div>
     </div>
-</section>
-
-<nav id="section-nav" aria-label="Section navigation">
     <ul>
-        <li><a href="#section-overview">Overview</a></li>
-        <li><a href="#noise-sweep-section">Context-Smoothing Interactive</a></li>
-        <li><a href="#section-motivation">Motivation</a></li>
-        <li><a href="#section-method">Method</a></li>
-        <li><a href="#section-sim">Simulation Results</a></li>
-        <li><a href="#real-world-section">Real-World RL</a></li>
-        <li><a href="#real-world-rollout-compare">Rollouts &amp; Learning</a></li>
-        <li><a href="#section-bibtex">BibTeX</a></li>
+        <li><a href="#sec-overview">Overview</a></li>
+        <li><a href="#sec-sweep">Context Noise Demo</a></li>
+        <li><a href="#sec-motivation">Motivation</a></li>
+        <li><a href="#sec-method">Method</a></li>
+        <li><a href="#sec-sim">Simulation</a></li>
+        <li><a href="#sec-real">Real-World RL</a></li>
+        <li><a href="#sec-rollouts">Rollouts</a></li>
+        <li><a href="#sec-bibtex">BibTeX</a></li>
     </ul>
+    <div id="nav-crumb"></div>
 </nav>
 
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
+<!-- ══════════ TEASER VIDEO ══════════ -->
+<div class="page-section" style="padding-top:0; padding-bottom:1rem;">
+    <video class="static-vid" autoplay loop muted playsinline>
+        <source src="static/videos/website_teaser.mp4" type="video/mp4">
+    </video>
+</div>
 
-<!-- Teaser video -->
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <video class="static-video" autoplay loop muted playsinline style="width:100%; border-radius:8px; background:#111;">
-            <source src="static/videos/website_teaser.mp4" type="video/mp4">
-        </video>
-    </div>
-</section>
+<div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
 
-<!-- Overview (condensed) -->
-<section class="section compact" id="section-overview">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">Overview</h2>
-        <div class="content has-text-justified">
-            <p>
-                Fine-tuning pre-trained robot policies with reinforcement learning (RL) is promising, but standard behavior cloning (BC) produces narrow, overconfident action distributions that generalize poorly and limit downstream RL improvement. We present a <em>unified framework</em> for bridging BC pre-training and RL fine-tuning. <strong>Context-Smoothed Pre-training (CSP)</strong> injects forward-diffusion noise into policy inputs, enabling a continuous spectrum between precise conditional imitation and broader action coverage. <strong>Timestep-Modulated Reinforcement Learning (TMRL)</strong> lets the agent dynamically adjust conditioning strength—via the diffusion timestep—during fine-tuning to control exploration. Across states, 3D pointclouds, and image-input VLA policies, this improves RL sample efficiency; in the real world, TMRL attains near-perfect success on complex manipulation in <strong>under one hour</strong> of interaction while many baselines remain near zero.
-            </p>
+<!-- ══════════ OVERVIEW ══════════ -->
+<section class="page-section" id="sec-overview">
+    <h2 class="section-head">Overview</h2>
+
+    <p class="body-text">
+        BC pre-training for RL post-training is promising, but standard BC produces
+        <strong>narrow, overconfident action distributions</strong> that collapse in unseen contexts—the policy
+        assigns near-zero probability to potentially optimal actions.
+    </p>
+
+    <div class="insight-grid" style="margin-top:1.2rem;">
+        <div class="insight-card">
+            <div class="ic-label">Pre-training</div>
+            <div class="ic-title">Context-Smoothed Pre-training (CSP)</div>
+            <div class="ic-body">Injects forward-diffusion noise into policy <em>inputs</em>, creating a tunable spectrum from precise conditional imitation <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) to broad marginal coverage <em>p</em>(<i>a</i>).</div>
+        </div>
+        <div class="insight-card">
+            <div class="ic-label">Post-training</div>
+            <div class="ic-title">Timestep-Modulated RL (TMRL)</div>
+            <div class="ic-body">Trains a high-level RL policy &pi;<sub>HL</sub> that dynamically adjusts the diffusion timestep &sigma; during post-training — using large &sigma; to alias contexts and approach the broad, high-entropy marginal <em>p</em>(<i>a</i>), and small &sigma; to sharpen toward the precise imitation conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>).</div>
         </div>
     </div>
+
+    <p class="body-text" style="margin-top:1.2rem;">
+        CSP is input-agnostic: it applies identically to ground-truth states, 3D pointclouds, and VLM embeddings in large VLA models. In real-world experiments, TMRL achieves near-perfect success on complex manipulation in <strong>under one hour</strong> while many baselines remain near zero.
+    </p>
 </section>
 
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
+<div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
 
-<!-- Noise Sweep Interactive (moved up) -->
+<!-- ══════════ SWEEP INTERACTIVE ══════════ -->
 <style>
-.sweep-tab {
-    font-family: 'Palatino', sans-serif;
-    font-size: 0.88rem;
-    padding: 5px 14px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    background: #fff;
-    cursor: pointer;
-    color: #444;
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
-}
-.sweep-tab.active {
-    background: #248656;
-    color: #fff;
-    border-color: #248656;
-}
-#sweep-instruction {
-    font-family: 'Courier New', monospace;
-    font-size: 0.88rem;
-    background: #f4f4f4;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 7px 14px;
-    color: #222;
-    max-width: 640px;
-    margin: 0 auto 1rem;
-    display: block;
-}
-.sweep-vid-cell {
-    position: relative;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #111;
-    line-height: 0;
-}
-.sweep-vid-cell video {
-    width: 100%;
-    display: block;
-    border-radius: 6px;
-}
-#sweep-grid.sweep-grid-libero {
+#sweep-grid.grid-multi {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
     max-width: 960px;
     margin: 0 auto;
 }
-#sweep-grid.sweep-grid-cube {
-    max-width: 560px;
-    margin: 0 auto;
-}
-@media (max-width: 900px) {
-    #sweep-grid.sweep-grid-libero {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+@media (max-width: 700px) {
+    #sweep-grid.grid-multi { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
 
-<section class="section compact" id="noise-sweep-section">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">Conditional &rarr; Marginal: Effect of Context Noise &sigma;</h2>
-        <div class="content has-text-justified">
-            <p>
-                Increasing the noise level &sigma; moves behavior along a continuum from sharply conditioned, imitation-like <i>p</i>(<i>a</i>&nbsp;|&nbsp;<i>c</i>) toward the marginal <i>p</i>(<i>a</i>): nearby contexts overlap in representation space, so the policy can borrow coherent action chunks from related contexts rather than relying on unstructured action noise. Drag the slider to sweep &sigma; from 0 to <i>T</i>.
-            </p>
+<section class="page-section" id="sec-sweep">
+    <h2 class="section-head">Conditional → Marginal: Effect of Context Noise &sigma;</h2>
+
+    <p class="body-text">
+        As &sigma; increases, nearby contexts overlap in representation space—the policy
+        <em>borrows</em> coherent action chunks from related contexts rather than relying on
+        unstructured noise. Drag the slider to sweep &sigma; from 0 to <em>T</em>.
+    </p>
+
+    <!-- task tabs -->
+    <div id="sweep-tabs" class="tab-row" style="margin-top:1rem;"></div>
+
+    <!-- language instruction (shown for LIBERO tasks) -->
+    <code id="sweep-instruction" class="instruction-box" style="display:none;"></code>
+
+    <!-- video grid -->
+    <div id="sweep-grid" class="grid-composite shimmer" style="min-height:200px; border-radius:8px;"></div>
+
+    <!-- slider -->
+    <div class="sigma-track-wrap">
+        <div class="sigma-labels">
+            <span>σ = 0 (conditional)</span>
+            <span>σ = T/4</span>
+            <span>σ = T/2</span>
+            <span>σ = 3T/4</span>
+            <span>σ = T (marginal)</span>
         </div>
-
-        <!-- Task tabs -->
-        <div id="sweep-tabs" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1rem;"></div>
-
-        <!-- Language instruction (hidden for non-language tasks) -->
-        <code id="sweep-instruction" style="display:none;"></code>
-
-        <!-- Composite video -->
-        <div id="sweep-grid" class="sweep-grid-cube"></div>
-
-        <!-- Noise slider -->
-        <div style="margin:1.1rem auto 0;">
-            <div style="position:relative; height:1.4rem; margin-bottom:6px; font-size:0.8rem; color:#555;">
-                <span style="position:absolute; left:0%;   transform:translateX(0%);    white-space:nowrap;">conditional &nbsp;(σ = 0)</span>
-                <span style="position:absolute; left:25%;  transform:translateX(-50%);  white-space:nowrap;">σ = T/4</span>
-                <span style="position:absolute; left:50%;  transform:translateX(-50%);  white-space:nowrap;">σ = T/2</span>
-                <span style="position:absolute; left:75%;  transform:translateX(-50%);  white-space:nowrap;">σ = 3T/4</span>
-                <span style="position:absolute; left:100%; transform:translateX(-100%); white-space:nowrap;">marginal &nbsp;(σ = T)</span>
-            </div>
-        
-            <input type="range" id="sweep-slider" min="0" max="4" step="1" value="0" style="display:none;">
-            <!-- styled track -->
-            <div id="sweep-track" style="position:relative; height:10px; border-radius:999px; background:linear-gradient(to right, #248656, #aaa); cursor:pointer;">
-            <div id="sweep-thumb" style="position:absolute; top:50%; left:0%; transform:translate(-50%,-50%); width:22px; height:22px; border-radius:50%; background:#fff; border:2.5px solid #248656; cursor:grab; transition:border-color 0.15s; box-shadow:0 1px 6px rgba(0,0,0,0.13);"></div>
-            </div>
-        
-            <div style="font-family:'Courier New',monospace; font-size:0.88rem; color:#248656; font-weight:bold; text-align:center; margin-top:10px;">
-            σ = <span id="sweep-sigma-display">0.00</span>
-            &nbsp;<span id="sweep-dist-label" style="color:#888; font-weight:normal;">(conditional)</span>
-            </div>
+        <input type="range" id="sweep-slider-hidden" min="0" max="4" step="1" value="0" style="display:none;">
+        <div id="sweep-track" class="sigma-track">
+            <div id="sweep-thumb" class="sigma-thumb"></div>
         </div>
-
-        <p class="caption" style="margin:0.75rem auto 0; text-align:center; max-width:760px; margin-left:auto; margin-right:auto; font-style:italic; color:#555; font-size:0.92rem;">
-            <strong>Behavior broadens as context smoothing increases.</strong> Lower &sigma; emphasizes conditional precision, while higher &sigma; increases coverage by aliasing nearby contexts and borrowing coherent behaviors.
-        </p>
+        <div class="sigma-readout">
+            σ = <strong id="sweep-sigma-val">0.00</strong>&ensp;<span id="sweep-sigma-lbl">(conditional)</span>
+        </div>
     </div>
+
+    <p class="cap" style="text-align:center; margin-top:0.75rem;">
+        <strong>Behavior broadens continuously with &sigma;.</strong> Low &sigma; preserves conditional precision; high &sigma; aliases nearby contexts, producing coherent but wider coverage.
+    </p>
 </section>
 
+<!-- ══════════ SWEEP JS ══════════ -->
 <script>
-(function () {
-    var NOISE_LEVELS = ['0.00', '0.25', '0.50', '0.75', '1.00'];
-    var DIST_LABELS  = ['conditional', '', '', '', 'marginal'];
-
-    var TASK_SPECS        = [];
-    var TASK_INSTRUCTIONS = {};
-
-    var _task      = 'cube_single';
-    var _noiseIdx  = 0;
-    var ROLLOUT_IDS = [0, 1, 2, 3, 4];
-
-    // ── Preload pool ──────────────────────────────────────────────────────
-    // Holds hidden <video> elements keyed by taskId → noiseLevel → [videos]
-    // so the browser buffers them and subsequent renders hit the cache.
+(function(){
+    var NL = ['0.00','0.25','0.50','0.75','1.00'];
+    var DL = ['(conditional)','','','','(marginal)'];
+    var SPECS = [], INSTR = {}, _task = 'cube_single', _idx = 0;
+    var RIDS = [0,1,2,3,4];
     var _pool = {};
-    var _poolRoot = (function () {
+    var _poolRoot = (function(){
         var el = document.createElement('div');
-        el.setAttribute('aria-hidden', 'true');
+        el.setAttribute('aria-hidden','true');
         el.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none;';
-        document.body.appendChild(el);
-        return el;
+        document.body.appendChild(el); return el;
+    }());
+    function p3(n){ return String(n).padStart(3,'0'); }
+    function cfg(id){
+        var base = 'static/videos/context_noise_sweep/' + id;
+        return id === 'cube_single' ? {mode:'composite', base:base} : {mode:'multi', base:base};
+    }
+    function srcs(c, nl){
+        return c.mode === 'composite'
+            ? [c.base+'/sigma_'+nl+'/composite.mp4']
+            : RIDS.map(function(r){ return c.base+'/sigma_'+nl+'/ep_'+p3(r)+'.mp4'; });
+    }
+    function mkVid(src){ var v = document.createElement('video'); v.src=src; v.muted=true; v.loop=true; v.preload='auto'; v.setAttribute('playsinline',''); _poolRoot.appendChild(v); return v; }
+    function preload(id){
+        if(_pool[id]) return;
+        var c = cfg(id); _pool[id]={};
+        NL.forEach(function(nl){ _pool[id][nl] = srcs(c,nl).map(mkVid); });
+    }
+    function fmtLabel(id){
+        if(id==='cube_single') return 'cube-single';
+        var p=id.split('_');
+        if(p.length>=3 && p[0]==='libero') return 'Libero-'+p.slice(1,-1).join('-')+' · Task '+p[p.length-1];
+        return id.replace(/_/g,'-');
+    }
+    function setUI(){
+        var nl=NL[_idx]; var pct=(_idx/4)*100;
+        document.getElementById('sweep-thumb').style.left=pct+'%';
+        document.getElementById('sweep-sigma-val').textContent=parseFloat(nl).toFixed(2);
+        document.getElementById('sweep-dist-display') && (document.getElementById('sweep-dist-display').textContent=DL[_idx]);
+        var lbl=document.getElementById('sweep-sigma-lbl'); if(lbl) lbl.textContent=DL[_idx]?DL[_idx]:'';
+    }
+    var _tok=0;
+    function render(){
+        var nl=NL[_idx], c=cfg(_task), tok=++_tok;
+        setUI();
+        var grid=document.getElementById('sweep-grid');
+        grid.style.opacity='0';
+        setTimeout(function(){
+            if(tok!==_tok) return;
+            grid.innerHTML=''; grid.classList.remove('shimmer');
+            var pv=_pool[_task]&&_pool[_task][nl];
+            if(c.mode==='composite'){
+                grid.className='grid-composite';
+                grid.style.maxWidth='520px'; grid.style.margin='0 auto';
+                var cell=document.createElement('div'); cell.className='sweep-cell';
+                var v=document.createElement('video'); v.src=pv?pv[0].src:c.base+'/sigma_'+nl+'/composite.mp4';
+                v.autoplay=true; v.loop=true; v.muted=true; v.setAttribute('playsinline','');
+                v.style.cssText='width:100%;display:block;border-radius:8px;';
+                cell.appendChild(v); grid.appendChild(cell);
+                fadeIn(grid,[v],tok); v.play().catch(function(){});
+            } else {
+                grid.className='grid-multi';
+                grid.style.maxWidth=''; grid.style.margin='';
+                var vs=[];
+                RIDS.forEach(function(r,i){
+                    var src=pv?pv[i].src:c.base+'/sigma_'+nl+'/ep_'+p3(r)+'.mp4';
+                    var cell=document.createElement('div'); cell.className='sweep-cell';
+                    var v=document.createElement('video'); v.src=src; v.autoplay=true; v.loop=true; v.muted=true; v.setAttribute('playsinline','');
+                    v.style.cssText='width:100%;display:block;border-radius:6px;';
+                    cell.appendChild(v); grid.appendChild(cell); vs.push(v);
+                });
+                fadeIn(grid,vs,tok);
+                vs.forEach(function(v){ v.play().then(function(){ v.playbackRate=1.5; }).catch(function(){}); });
+            }
+        },170);
+    }
+    function fadeIn(grid,vids,tok){
+        var done=false;
+        var fb=setTimeout(function(){ if(tok===_tok&&!done){done=true;grid.style.opacity='1';} },600);
+        vids[0].addEventListener('canplay',function fn(){ vids[0].removeEventListener('canplay',fn); clearTimeout(fb); if(tok===_tok&&!done){done=true;grid.style.opacity='1';} });
+    }
+    function renderTabs(){
+        var root=document.getElementById('sweep-tabs'); root.innerHTML='';
+        SPECS.forEach(function(s){
+            var b=document.createElement('button'); b.className='tab-btn'+(s.id===_task?' active':'');
+            b.dataset.task=s.id; b.textContent=fmtLabel(s.id);
+            b.addEventListener('click',function(){ setTask(b); }); root.appendChild(b);
+        });
+    }
+    function updateInstr(){
+        var el=document.getElementById('sweep-instruction'); var t=INSTR[_task]||'';
+        el.textContent=t; el.style.display=t?'block':'none';
+    }
+    function setTask(btn){
+        document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+        btn.classList.add('active'); _task=btn.dataset.task; _idx=0;
+        document.getElementById('sweep-slider-hidden').value=0; updateInstr(); preload(_task); render();
+    }
+    function setIdx(i){ _idx=Math.max(0,Math.min(4,i)); document.getElementById('sweep-slider-hidden').value=_idx; render(); }
+
+    // draggable track
+    (function(){
+        var track=document.getElementById('sweep-track'); if(!track)return;
+        var drag=false;
+        function pct(e){ var r=track.getBoundingClientRect(); var x=e.touches?e.touches[0].clientX:e.clientX; return Math.max(0,Math.min(1,(x-r.left)/r.width)); }
+        function apply(e){ setIdx(Math.round(pct(e)*4)); }
+        track.addEventListener('mousedown',function(e){drag=true;apply(e);e.preventDefault();});
+        document.addEventListener('mousemove',function(e){if(drag)apply(e);});
+        document.addEventListener('mouseup',function(){drag=false;});
+        track.addEventListener('touchstart',function(e){drag=true;apply(e);e.preventDefault();},{passive:false});
+        document.addEventListener('touchmove',function(e){if(drag)apply(e);},{passive:false});
+        document.addEventListener('touchend',function(){drag=false;});
     }());
 
-    function pad3(n) { return String(n).padStart(3, '0'); }
-
-    function getTaskCfg(taskId) {
-        var base = 'static/videos/context_noise_sweep/' + taskId;
-        if (taskId === 'cube_single') {
-            return { mode: 'composite', base: base };
-        }
-        return { mode: 'multi', base: base };
+    function parse(txt){
+        var seen={},out=[];
+        txt.split('\n').forEach(function(l){ var t=l.trim(); if(!t)return; var m=t.match(/^([a-z0-9_]+):\s*(.*)$/i); if(m){var id=m[1].toLowerCase(); if(!seen[id]){seen[id]=true;out.push({id:id,instruction:m[2].trim()});}} });
+        return out;
     }
-
-    function getSrcsForLevel(cfg, nl) {
-        if (cfg.mode === 'composite') {
-            return [cfg.base + '/sigma_' + nl + '/composite.mp4'];
-        }
-        return ROLLOUT_IDS.map(function (rid) {
-            return cfg.base + '/sigma_' + nl + '/ep_' + pad3(rid) + '.mp4';
-        });
+    function init(tasks){
+        SPECS=tasks.slice(); INSTR={};
+        SPECS.forEach(function(s){INSTR[s.id]=s.instruction||'';});
+        if(!INSTR[_task]) _task=SPECS[0].id;
+        renderTabs(); updateInstr(); preload(_task); render();
     }
-
-    function makePoolVid(src) {
-        var v = document.createElement('video');
-        v.src     = src;
-        v.muted   = true;
-        v.loop    = true;
-        v.preload = 'auto';
-        v.setAttribute('playsinline', '');
-        _poolRoot.appendChild(v);
-        return v;
-    }
-
-    // Start buffering all noise levels for a task (no-op if already pooled).
-    function preloadTask(taskId) {
-        if (_pool[taskId]) return;
-        var cfg = getTaskCfg(taskId);
-        _pool[taskId] = {};
-        NOISE_LEVELS.forEach(function (nl) {
-            _pool[taskId][nl] = getSrcsForLevel(cfg, nl).map(makePoolVid);
-        });
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
-    function formatTaskLabel(taskId) {
-        if (taskId === 'cube_single') return 'cube-single';
-        var parts = taskId.split('_');
-        if (parts.length >= 3 && parts[0] === 'libero') {
-            var suite = parts.slice(1, -1).join('-');
-            var idx   = parts[parts.length - 1];
-            return 'Libero-' + suite + ' · Task ' + idx;
-        }
-        return taskId.replace(/_/g, '-');
-    }
-
-    function updateInstruction() {
-        var instrEl = document.getElementById('sweep-instruction');
-        var instr   = TASK_INSTRUCTIONS[_task] || '';
-        instrEl.textContent  = instr;
-        instrEl.style.display = instr ? 'block' : 'none';
-    }
-
-    function renderTaskTabs() {
-        var tabsRoot = document.getElementById('sweep-tabs');
-        tabsRoot.innerHTML = '';
-        TASK_SPECS.forEach(function (spec) {
-            var btn = document.createElement('button');
-            btn.className       = 'sweep-tab' + (spec.id === _task ? ' active' : '');
-            btn.dataset.task    = spec.id;
-            btn.dataset.instruction = spec.instruction || '';
-            btn.textContent     = formatTaskLabel(spec.id);
-            btn.addEventListener('click', function () { window.sweepSetTask(btn); });
-            tabsRoot.appendChild(btn);
-        });
-    }
-
-    function parseTasksText(rawText) {
-        var seen = {}, parsed = [];
-        rawText.split('\n').forEach(function (line) {
-            var trimmed = line.trim();
-            if (!trimmed) return;
-            // format: task_id: instruction  (instruction may be empty)
-            var m = trimmed.match(/^([a-z0-9_]+):\s*(.*)$/i);
-            if (m) {
-                var id = m[1].toLowerCase();
-                if (!seen[id]) { seen[id] = true; parsed.push({ id: id, instruction: m[2].trim() }); }
-            }
-        });
-        return parsed;
-    }
-
-    function setTasks(tasks) {
-        TASK_SPECS = tasks.slice();
-        TASK_INSTRUCTIONS = {};
-        TASK_SPECS.forEach(function (spec) { TASK_INSTRUCTIONS[spec.id] = spec.instruction || ''; });
-        // Default to first task (cube_single is first in tasks.txt)
-        if (!TASK_INSTRUCTIONS[_task]) _task = TASK_SPECS[0].id;
-        renderTaskTabs();
-        updateInstruction();
-        preloadTask(_task);
-        render();
-    }
-
-    function loadTasksFromFile() {
-        fetch('static/videos/context_noise_sweep/tasks.txt')
-            .then(function (res) { return res.text(); })
-            .then(function (txt) {
-                var parsed = parseTasksText(txt);
-                if (parsed.length > 0) setTasks(parsed);
-            })
-            .catch(function () {});
-    }
-
-    // ── Render with crossfade ─────────────────────────────────────────────
-    var _renderToken = 0; // increments on each render call; lets async callbacks bail if stale
-
-    function render() {
-        var nl   = NOISE_LEVELS[_noiseIdx];
-        var lbl  = DIST_LABELS[_noiseIdx];
-        var cfg  = getTaskCfg(_task);
-        var token = ++_renderToken;
-
-        document.getElementById('sweep-sigma-display').textContent = parseFloat(nl).toFixed(2);
-        document.getElementById('sweep-dist-label').textContent = lbl ? '(' + lbl + ')' : '';
-
-        var grid = document.getElementById('sweep-grid');
-
-        // Step 1: fade out
-        grid.style.opacity = '0';
-
-        setTimeout(function () {
-            if (token !== _renderToken) return; // superseded by a newer render
-            grid.innerHTML = '';
-
-            var poolVids = _pool[_task] && _pool[_task][nl]; // may be undefined if pool not ready yet
-
-            if (cfg.mode === 'composite') {
-                grid.className = 'sweep-grid-cube';
-                var cell = document.createElement('div');
-                cell.className = 'sweep-vid-cell';
-                cell.style.cssText = 'border-radius:8px; overflow:hidden;';
-
-                var vid = document.createElement('video');
-                // If pool has this video the browser already buffered it — same src hits cache
-                vid.src = poolVids ? poolVids[0].src : cfg.base + '/sigma_' + nl + '/composite.mp4';
-                vid.autoplay = true; vid.loop = true; vid.muted = true;
-                vid.setAttribute('playsinline', '');
-                vid.style.cssText = 'width:100%; display:block; border-radius:8px;';
-                cell.appendChild(vid);
-                grid.appendChild(cell);
-                fadeInOnReady(grid, [vid], token);
-                vid.play().then(function () { vid.playbackRate = 1.0; }).catch(function () {});
-
-            } else {
-                grid.className = 'sweep-grid-libero';
-                var newVids = [];
-                ROLLOUT_IDS.forEach(function (rid, i) {
-                    var src = poolVids ? poolVids[i].src
-                                       : cfg.base + '/sigma_' + nl + '/ep_' + pad3(rid) + '.mp4';
-                    var c = document.createElement('div');
-                    c.className = 'sweep-vid-cell';
-                    c.style.cssText = 'border-radius:8px; overflow:hidden;';
-                    var v = document.createElement('video');
-                    v.src = src; v.autoplay = true; v.loop = true; v.muted = true;
-                    v.setAttribute('playsinline', '');
-                    v.style.cssText = 'width:100%; display:block; border-radius:8px;';
-                    c.appendChild(v);
-                    grid.appendChild(c);
-                    newVids.push(v);
-                });
-                fadeInOnReady(grid, newVids, token);
-                newVids.forEach(function (v) {
-                    v.play().then(function () { v.playbackRate = 1.5; }).catch(function () {});
-                });
-            }
-        }, 180);
-    }
-
-    // Fade the grid back in when the first video in `vids` is ready to play.
-    function fadeInOnReady(grid, vids, token) {
-        var done = false;
-        var fallback = setTimeout(function () {
-            if (token === _renderToken && !done) { done = true; grid.style.opacity = '1'; }
-        }, 600);
-        vids[0].addEventListener('canplay', function onCan() {
-            vids[0].removeEventListener('canplay', onCan);
-            clearTimeout(fallback);
-            if (token === _renderToken && !done) { done = true; grid.style.opacity = '1'; }
-        });
-    }
-
-    // ── Public API ────────────────────────────────────────────────────────
-    window.sweepUpdate = function () {
-        _noiseIdx = parseInt(document.getElementById('sweep-slider').value);
-        render();
-    };
-
-    window.sweepSetTask = function (btn) {
-        document.querySelectorAll('.sweep-tab').forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        _task = btn.dataset.task;
-        updateInstruction();
-        _noiseIdx = 0;
-        document.getElementById('sweep-slider').value = 0;
-        preloadTask(_task);   // start buffering all noise levels for this task now
-        render();
-    };
-
-    
-
-    loadTasksFromFile();
-})();
+    fetch('static/videos/context_noise_sweep/tasks.txt').then(function(r){return r.text();}).then(function(t){ var p=parse(t); if(p.length)init(p); }).catch(function(){});
+}());
 </script>
 
-<script>
-(function () {
-    var LEVELS      = ['0.00', '0.25', '0.50', '0.75', '1.00'];
-    var DIST_LABELS = ['(conditional)', '', '', '', '(marginal)'];
+<div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
 
-    function setIdx(idx) {
-        var pct = idx / 4;
-        // hero slider
-        var heroThumb = document.getElementById('hero-thumb');
-        if (heroThumb) heroThumb.style.left = (pct * 100) + '%';
-        var heroSigma = document.getElementById('hero-sigma-display');
-        if (heroSigma) heroSigma.textContent = LEVELS[idx];
-        var heroDist = document.getElementById('hero-dist-label');
-        if (heroDist) heroDist.textContent = DIST_LABELS[idx];
-        // sweep slider
-        var sweepThumb = document.getElementById('sweep-thumb');
-        if (sweepThumb) sweepThumb.style.left = (pct * 100) + '%';
-        var sweepSigma = document.getElementById('sweep-sigma-display');
-        if (sweepSigma) sweepSigma.textContent = LEVELS[idx];
-        var sweepDist = document.getElementById('sweep-dist-label');
-        if (sweepDist) sweepDist.textContent = DIST_LABELS[idx];
-        // drive underlying input + sweepUpdate
-        var slider = document.getElementById('sweep-slider');
-        if (slider) { slider.value = idx; if (typeof sweepUpdate === 'function') sweepUpdate(); }
-    }
+<!-- ══════════ MOTIVATION ══════════ -->
+<section class="page-section" id="sec-motivation">
+    <h2 class="section-head">The Need for Action Distribution Interpolation</h2>
 
-    function makeDraggable(trackId) {
-        var track = document.getElementById(trackId);
-        if (!track) return;
-        var dragging = false;
+    <p class="body-text">
+        In an out-of-distribution 2D maze, the conditional distribution <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) is overfit and leads the agent away from the goal. The marginal <em>p</em>(<i>a</i>) has coverage but too much variation for precise finishing.
+        <strong>An optimal policy needs both</strong>—the broad, high-entropy marginal early, the precise imitation conditional late.
+    </p>
 
-        function pct(e) {
-            var r = track.getBoundingClientRect();
-            var x = e.touches ? e.touches[0].clientX : e.clientX;
-            return Math.max(0, Math.min(1, (x - r.left) / r.width));
-        }
-        function apply(e) { setIdx(Math.round(pct(e) * 4)); }
-
-        track.addEventListener('mousedown',  function (e) { dragging = true; apply(e); e.preventDefault(); });
-        document.addEventListener('mousemove', function (e) { if (dragging) apply(e); });
-        document.addEventListener('mouseup',   function ()  { dragging = false; });
-        track.addEventListener('touchstart', function (e) { dragging = true; apply(e); e.preventDefault(); }, { passive: false });
-        document.addEventListener('touchmove', function (e) { if (dragging) apply(e); }, { passive: false });
-        document.addEventListener('touchend',  function ()  { dragging = false; });
-    }
-
-    makeDraggable('hero-track');
-    makeDraggable('sweep-track');
-})();
-</script>
-
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
-
-<!-- Motivation (now serves as the "ah, here's why" payoff) -->
-<section class="section compact" id="section-motivation">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">The Need for Action Distribution Interpolation</h2>
-        <div class="content has-text-justified">
-            <p>
-                For an unseen goal in a 2D point-maze (as in our OGBench-style illustration), the conditional <i>p</i>(<i>a</i>&nbsp;|&nbsp;<i>c</i>) can remain so narrow that sampled trajectories fail to reach the goal, while the marginal <i>p</i>(<i>a</i>) has coverage to approach it but too much variation near the goal. A useful policy tracks <i>p</i>(<i>a</i>) early and <i>p</i>(<i>a</i>&nbsp;|&nbsp;<i>c</i>) late. <strong>Context-Smoothed Pre-training</strong> pre-trains a single policy that interpolates between these extremes; <strong>Timestep-Modulated RL</strong> learns when and how to move along that interpolation during fine-tuning.
-            </p>
+    <!-- 3-column exploration comparison -->
+    <div class="exploration-modes">
+        <div class="exp-mode">
+            <div class="exp-mode-label bad">Problem</div>
+            <div class="exp-mode-title"><em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) — BC only</div>
+            <div class="exp-mode-body">Near-zero support in novel contexts. RL is unable to get a reward signal.</div>
         </div>
-        <div class="publication-image" style="margin-top: 1.5rem;">
-            <div style="display:flex; gap:24px; justify-content:center; align-items:flex-start; flex-wrap:wrap; font-family:'Palatino', sans-serif;">
-                <div style="display:flex; flex-direction:column; align-items:center; flex:1 1 420px; max-width:460px;">
-                    <div style="font-size:1.25rem; margin-bottom:10px;">
-                        <i>p</i>(<i>a</i>&nbsp;|&nbsp;<i>c</i>)
-                    </div>
-                    <video class="static-video" autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
-                        <source src="static/videos/bc_pointmaze.mp4" type="video/mp4">
-                    </video>
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:center; flex:1 1 420px; max-width:460px;">
-                    <div style="font-size:1.25rem; margin-bottom:10px;">
-                        <i>p</i>(<i>a</i>)
-                    </div>
-                    <video class="static-video" autoplay loop muted playsinline style="width:100%; border-radius:6px; background:#111;">
-                        <source src="static/videos/csp_pointmaze.mp4" type="video/mp4">
-                    </video>
-                </div>
-            </div>
-            <p class="caption">
-                <strong>Neither extreme alone suffices.</strong> The conditional is too narrow out-of-distribution; the marginal is too broad for precise finishing. An optimal policy blends both — the regime context-smoothed pre-training is designed to support, with TMRL selecting the tradeoff online.
-            </p>
+        <div class="exp-mode">
+            <div class="exp-mode-label ok">Problem</div>
+            <div class="exp-mode-title"><em>p</em>(<i>a</i>) — marginal only</div>
+            <div class="exp-mode-body">Broad coverage but too diffuse for task completion.</div>
+        </div>
+        <div class="exp-mode highlight">
+            <div class="exp-mode-label good">Solution</div>
+            <div class="exp-mode-title">CSP + TMRL</div>
+            <div class="exp-mode-body">A single policy that interpolates dynamically between the broad marginal and precise conditional when needed.</div>
         </div>
     </div>
-</section>
 
-<script>
-(function () {
-    var _frames = null;      // array of img src strings, one per sigma level
-    var _sigmas = null;      // parallel array of sigma float values
-    var _currentIdx = 0;
-
-    // Called by pmSliderUpdate; also exposed so the drop-in can trigger updates.
-    function _showFrame(idx) {
-        _currentIdx = Math.max(0, Math.min(idx, _frames ? _frames.length - 1 : 0));
-        var sigma = _sigmas ? _sigmas[_currentIdx] : parseFloat(document.getElementById('pm-sigma-slider').value) / 100.0;
-        document.getElementById('pm-sigma-display').textContent = sigma.toFixed(2);
-
-        if (_frames) {
-            var img = document.getElementById('pm-frame');
-            if (img) img.src = _frames[_currentIdx];
-        }
-    }
-
-    // ── Public API ─────────────────────────────────────────────────────────
-    window.pmInit = function (frameSrcs, sigmaLevels) {
-        _frames = frameSrcs;
-        _sigmas = sigmaLevels;
-
-        var root = document.getElementById('pm-viz-root');
-        if (!root) return;
-        root.className = 'pm-frame-wrap';
-        root.innerHTML = '<img id="pm-frame" src="' + _frames[0] + '" alt="trajectory spread at current sigma">';
-
-        var slider = document.getElementById('pm-sigma-slider');
-        slider.max   = _frames.length - 1;
-        slider.step  = 1;
-        slider.value = 0;
-        _showFrame(0);
-    };
-
-    window.pmSliderUpdate = function (val) {
-        var idx = _frames
-            ? parseInt(val)
-            : -1;   // no frames yet — just update readout
-        if (idx >= 0) {
-            _showFrame(idx);
-        } else {
-            var frac = parseFloat(val) / 100.0;
-            document.getElementById('pm-sigma-display').textContent = frac.toFixed(2);
-        }
-    };
-})();
-</script>
-
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
-
-<!-- Method -->
-<section class="section compact" id="section-method">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">Method</h2>
-
-        <div class="publication-image" style="margin-top: 1.25rem;">
-            <a class="img-wrap" href="#" data-lb-src="static/figures/method.png">
-                <img src="static/figures/method.png" alt="Method overview figure for context-smoothed pre-training and timestep-modulated RL.">
-            </a>
-            <p class="caption">
-                <strong>Timestep-modulated exploration via context smoothing (Fig.&nbsp;3 in the paper).</strong> (<em>Left</em>) CSP pre-trains p<sub>&theta;</sub> across noise levels by corrupting context <i>c</i> with q<sub>&sigma;</sub>(c&#771;&nbsp;|&nbsp;c). (<em>Right</em>) TMRL fine-tunes a high-level policy &pi;<sub>HL</sub> that selects the diffusion timestep &sigma; (conditioning strength) together with the base policy&rsquo;s usual latent variables—interpolating between precise execution and broader coverage for adaptation.
-            </p>
-        </div>
-
-        <div class="pull-quote">
-            A steerable base policy, trained at all noise levels, with an RL agent that learns to modulate the diffusion timestep to balance exploration and exploitation.
-        </div>
-
-        <div class="content has-text-justified">
-            <p>
-                Following the paper, <strong>Context-Smoothed Pre-training (CSP)</strong> trains a generative control policy p<sub>&theta;</sub> by sampling a corruption level &sigma;, drawing a noised context c&#771; from q<sub>&sigma;</sub>(c&#771;&nbsp;|&nbsp;c), and learning actions under (c&#771;,&nbsp;&sigma;). As &sigma; grows, the policy transitions from the conditional p(<i>a</i>&nbsp;|&nbsp;<i>c</i>) toward the marginal p(<i>a</i>), with low noise aliasing similar contexts. During RL fine-tuning, <strong>Timestep-Modulated Reinforcement Learning (TMRL)</strong> implements the high-level policy &pi;<sub>HL</sub> to <em>dynamically adjust the diffusion timestep</em> (conditioning strength): large &sigma; encourages broader, aliased coverage; small &sigma; recovers sharp conditioning for precise execution — including within a single trajectory.
-            </p>
-        </div>
-
-        <div class="publication-image" style="margin-top: 2rem;">
-            <a class="img-wrap" href="#" data-lb-src="static/figures/context_smoothing.gif" style="width: 40%; display: block; margin: 0 auto;">
-                <img src="static/figures/context_smoothing.gif" alt="Context smoothing visualization showing trajectory distributions as noise level σ increases from 0 to T." style="width: 100%; display: block;">
-            </a>
-            <p class="caption">
-                <strong>Empirical validation of context smoothing.</strong> As &sigma; increases, q<sub>&sigma;</sub>(c&#771;&nbsp;|&nbsp;c) systematically aliases nearby contexts, broadening the action distribution while preserving coherent action chunks from related contexts. At &sigma;&nbsp;=&nbsp;0, conditioning sharpens to p(a&nbsp;|&nbsp;c); as &sigma;&nbsp;&rarr;&nbsp;T, the distribution approaches the marginal p(a).
-            </p>
-        </div>
-
-    </div>
-</section>
-
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
-
-<!-- Simulation Results -->
-<section class="section compact" id="section-sim">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">Simulation Results</h2>
-
-        <div class="content has-text-justified">
-            <p>
-                We first compare <em>demonstrator action coverage</em> before RL, as in the paper: <strong>Success@K</strong> is the fraction of out-of-distribution initial states for which at least one of <i>K</i> base-policy rollouts succeeds. <strong>Context-Smoothed Pre-training (CSP)</strong> outperforms standard BC and PostBC in zero-shot Success@K on the evaluated OGBench tasks, with the gap largest where BC/PostBC have little support.
-            </p>
-        </div>
-        <div style="width: 80%; margin: 1.25rem auto 0;">
-            <div class="publication-image">
-                <a class="img-wrap" href="#" data-lb-src="static/figures/success_at_k.png">
-                    <img src="static/figures/success_at_k.png" alt="Success@K results comparing CSP, BC, and PostBC.">
-                </a>
-                <p class="caption">
-                    <strong>Context-smoothed pre-training unlocks better action coverage before RL fine-tuning.</strong> CSP achieves greater Success@K across all K on both tasks. The gap is most pronounced on cube-single, where BC and PostBC have near-zero success at all K.
-                </p>
-            </div>
-        </div>
-
-        <div class="content has-text-justified" style="margin-top: 2rem;">
-            <p>
-                This coverage advantage translates to RL. <strong>TMRL</strong> with context-smoothed policies improves RL sample efficiency in simulation, including over strong steering baselines when the base policy is sparse. On OGBench, the paper reports roughly a 101% aggregate improvement over the best-performing baseline across the two tasks; on long-horizon <strong>LIBERO-90</strong>, only TMRL achieves non-trivial success, borrowing coherent action structure via context aliasing where conditional BC steering stalls.
-            </p>
-        </div>
-        <div class="publication-image" style="margin-top: 1.25rem;">
-            <a class="img-wrap" href="#" data-lb-src="static/figures/sim_results.png">
-                <img src="static/figures/sim_results.png" alt="Simulation RL fine-tuning results across OGBench and LIBERO tasks.">
-            </a>
-            <p class="caption">
-                <strong>RL success rates for simulation tasks.</strong> TMRL attains near-100% success on both OGBench tasks, outperforming the best baselines by 14% in pointmaze-giant and 200% in cube-single. In libero-goal, TMRL and RLPD reach 100% success. For the longer-horizon libero-90, only TMRL explores sufficiently to achieve non-trivial success rates.
-            </p>
-        </div>
-
-    </div>
-</section>
-
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
-
-<!-- Real-World RL -->
-<section class="section compact" id="real-world-section">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">Real-World RL with Context-Smoothed &pi;<sub>0</sub></h2>
-
-        <!-- Headline result callout -->
-        <div class="headline-callout">
-            <div class="big-num">&lt; 1 hr</div>
-            <div class="text">
-                As in the paper, TMRL can reach <strong>near-perfect success</strong> on real WidowX and DROID button tasks in under one hour of real-world interaction, from a pre-trained base that often grasps the wrong object, while <strong>DSRL</strong> (steering with no context smoothing) achieves near-zero success.
-            </div>
-        </div>
-
-        <div class="publication-image" style="margin-top:1.25rem;">
-            <video class="static-video" autoplay loop muted playsinline
-                   style="width:100%; border-radius:8px; background:#111; display:block;">
-                <source src="static/videos/csp_vla.mp4" type="video/mp4">
+    <!-- pointmaze videos -->
+    <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:1rem;">
+        <div style="flex:1 1 280px; text-align:center;">
+            <div style="font-family:'Palatino',serif; font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:8px;"><em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) — conditional (BC)</div>
+            <video class="static-vid" autoplay loop muted playsinline style="border-radius:6px; background:#111;">
+                <source src="static/videos/bc_pointmaze.mp4" type="video/mp4">
             </video>
-            <p class="caption">
-                <strong>Context-smoothed pre-training for VLA models.</strong> VLM embedding contexts are corrupted via q<sub>&sigma;</sub>(c&#771;&nbsp;|&nbsp;c), producing a spectrum from precise conditional behavior (&sigma;&nbsp;=&nbsp;0) to broad marginal behavior (&sigma;&nbsp;=&nbsp;T). TMRL trains &pi;<sub>HL</sub> to dynamically select &sigma; during real-world fine-tuning.
-            </p>
         </div>
-        <div class="content has-text-justified" style="margin-top: 2rem;">
-            <p>
-                The paper shows TMRL on real <strong>vision–language–action (VLA)</strong> fine-tuning: we pre-train a <strong>context-smoothed</strong> <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank">&pi;<sub>0</sub></a> on <a href="https://rail-berkeley.github.io/bridgedata/" target="_blank">BridgeData-v2</a> (WidowX 250) and on the <a href="https://droid-dataset.github.io/" target="_blank">DROID</a> dataset (Franka Panda) by noising <strong>VLM embedding contexts</strong> with the same CSP objective, then run <strong>TMRL</strong> to modulate the timestep during deployment—aliasing the current context with related behaviors in the dataset for coherent exploration.
-            </p>
+        <div style="flex:1 1 280px; text-align:center;">
+            <div style="font-family:'Palatino',serif; font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:8px;"><em>p</em>(<i>a</i>) — marginal</div>
+            <video class="static-vid" autoplay loop muted playsinline style="border-radius:6px; background:#111;">
+                <source src="static/videos/csp_pointmaze.mp4" type="video/mp4">
+            </video>
         </div>
-        <div class="publication-image" style="margin-top:1.5rem;">
-            <a class="img-wrap" href="#" data-lb-src="static/figures/real_results.png">
-                <img src="static/figures/real_results.png" alt="Real-world RL fine-tuning results on WidowX and DROID robots.">
-            </a>
-            <p class="caption">
-                <strong>Real-world RL fine-tuning results (paper).</strong> The pre-trained base &pi;<sub>0</sub> often fails (e.g., wrong object). <strong>TMRL</strong> fine-tunes to high success in under one hour of total experiment time. <strong>DSRL</strong> cannot perform tasks outside the base policy&rsquo;s conditional support and shows negligible learning.
-            </p>
+    </div>
+    <p class="cap">A useful policy tracks <em>p</em>(<i>a</i>) far from the goal and <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) near it. CSP pre-trains a policy that can do both; TMRL learns <em>when</em> to switch.</p>
+</section>
+
+<div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
+
+<!-- ══════════ METHOD ══════════ -->
+<section class="page-section" id="sec-method">
+    <h2 class="section-head">Method</h2>
+
+    <div class="pub-img" style="margin-top:0.5rem;">
+        <a href="#" data-lb="static/figures/method.png">
+            <img src="static/figures/method.png" alt="TMRL method overview">
+        </a>
+        <p class="cap"><strong>Fig. 3 from the paper.</strong> (<em>Left</em>) CSP pre-trains p<sub>θ</sub> across all noise levels by corrupting context <i>c</i> with q<sub>σ</sub>(c̃&thinsp;|&thinsp;c). (<em>Right</em>) TMRL exposes σ as an explicit conditioning-strength dial for the high-level RL policy π<sub>HL</sub>.</p>
+    </div>
+
+    <div class="pull-quote">
+        A steerable base policy, trained at all noise levels, with an RL agent that learns to modulate the diffusion timestep between the broad, high-entropy marginal and the precise imitation conditional.
+    </div>
+
+    <p class="body-text">
+        <strong>CSP</strong> samples a corruption level σ, draws a noised context c̃ ~ q<sub>σ</sub>(c̃&thinsp;|&thinsp;c), and trains the policy on (c̃, σ). As σ grows, nearby contexts alias together and the distribution broadens continuously toward <em>p</em>(<i>a</i>).
+    </p>
+
+    <p class="body-text" style="margin-top:0.75rem;">
+        <strong>TMRL</strong> then trains π<sub>HL</sub> to jointly select the latent z <em>and</em> the timestep σ at each step. Large σ aliases contexts toward the broad, high-entropy marginal <em>p</em>(<i>a</i>); small σ recovers the precise imitation conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>)—even within a single trajectory.
+    </p>
+
+    <!-- Method comparison table -->
+    <div class="sub-head">How TMRL Compares</div>
+    <table class="compare-table">
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Explores beyond base policy?</th>
+                <th>Coherent action structure?</th>
+                <th>Adaptive per-step control?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>RLPD</td>
+                <td><span class="partial">△ Gaussian noise only</span></td>
+                <td><span class="cross">✗</span></td>
+                <td><span class="cross">✗</span></td>
+            </tr>
+            <tr>
+                <td>DSRL</td>
+                <td><span class="cross">✗ Stuck at conditional support</span></td>
+                <td><span class="check">✓</span></td>
+                <td><span class="cross">✗</span></td>
+            </tr>
+            <tr>
+                <td>PostBC</td>
+                <td><span class="partial">△ Action-space Gaussian</span></td>
+                <td><span class="cross">✗ Dithering</span></td>
+                <td><span class="cross">✗ Fixed at pre-training</span></td>
+            </tr>
+            <tr class="ours">
+                <td><strong>TMRL (ours)</strong></td>
+                <td><span class="check">✓ Context aliasing</span></td>
+                <td><span class="check">✓ Borrows coherent chunks</span></td>
+                <td><span class="check">✓ RL-learned per step</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="pub-img" style="margin-top:1.5rem;">
+        <a href="#" data-lb="static/figures/context_smoothing.gif" style="width:42%; display:block; margin:0 auto;">
+            <img src="static/figures/context_smoothing.gif" alt="Context smoothing visualization" style="width:100%;">
+        </a>
+        <p class="cap" style="text-align:center;"><strong>Empirical validation.</strong> As σ increases, q<sub>σ</sub>(c̃&thinsp;|&thinsp;c) aliases nearby contexts—broadening coverage while preserving coherent action structure. At σ = 0, behavior sharpens to <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>); at σ → T, it approaches <em>p</em>(<i>a</i>).</p>
+    </div>
+</section>
+
+<div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
+
+<!-- ══════════ SIMULATION ══════════ -->
+<section class="page-section" id="sec-sim">
+    <h2 class="section-head">Simulation Results</h2>
+
+    <div class="sub-head">Action Coverage Before RL</div>
+    <p class="body-text">
+        <strong>Success@K</strong> measures the fraction of out-of-distribution initial states where at least one of <em>K</em> base-policy rollouts succeeds — a direct proxy for demonstrator action coverage.
+        CSP outperforms standard BC and PostBC at every K, with the gap largest on cube-single where both baselines have near-zero coverage.
+    </p>
+
+    <div class="pub-img" style="width:78%; margin:1rem auto 0;">
+        <a href="#" data-lb="static/figures/success_at_k.png">
+            <img src="static/figures/success_at_k.png" alt="Success@K comparison">
+        </a>
+        <p class="cap"><strong>CSP unlocks action coverage before RL.</strong> BC and PostBC plateau near zero on cube-single; CSP achieves meaningful coverage at all K.</p>
+    </div>
+
+    <div class="sub-head" style="margin-top:2rem;">RL Sample Efficiency</div>
+    <p class="body-text">
+        This coverage advantage translates directly to RL. TMRL achieves near-100% success on both OGBench tasks and outperforms the best baseline by <strong>101% overall</strong>.
+        On long-horizon <strong>LIBERO-90</strong>, only TMRL achieves non-trivial success — DSRL's conditional distribution is too narrow to explore the task.
+    </p>
+
+    <!-- key results callout -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin:1.2rem 0;">
+        <div class="result-callout" style="margin:0;">
+            <div class="big">+14%</div>
+            <div class="desc">over best baseline on <strong>pointmaze-giant</strong></div>
+        </div>
+        <div class="result-callout" style="margin:0;">
+            <div class="big">+200%</div>
+            <div class="desc">over best baseline on <strong>cube-single</strong></div>
+        </div>
+    </div>
+
+    <div class="pub-img">
+        <a href="#" data-lb="static/figures/sim_results.png">
+            <img src="static/figures/sim_results.png" alt="Simulation RL results">
+        </a>
+        <p class="cap"><strong>RL success rates across simulation tasks.</strong> TMRL achieves near-100% on OGBench tasks and is the only method that achieves non-trivial success on the long-horizon LIBERO-90 task.</p>
+    </div>
+</section>
+
+<div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
+
+<!-- ══════════ REAL WORLD ══════════ -->
+<section class="page-section" id="sec-real">
+    <h2 class="section-head">Real-World RL with Context-Smoothed π<sub>0</sub></h2>
+
+    <div class="result-callout">
+        <div class="big">&lt;&thinsp;1 hr</div>
+        <div class="desc">
+            TMRL reaches <strong>near-perfect success</strong> on two real WidowX manipulation tasks in under one hour of interaction, starting from a pre-trained π<sub>0</sub> that often grasps the wrong object.
+            DSRL achieves near-zero success throughout.
+        </div>
+    </div>
+
+    <video class="static-vid" autoplay loop muted playsinline style="margin-top:0.5rem;">
+        <source src="static/videos/csp_vla.mp4" type="video/mp4">
+    </video>
+    <p class="cap"><strong>CSP for VLA models.</strong> VLM embedding contexts are corrupted via q<sub>σ</sub>(c̃&thinsp;|&thinsp;c), giving π<sub>0</sub> a tunable spectrum from precise to broad behavior. TMRL trains π<sub>HL</sub> to select σ online.</p>
+
+    <p class="body-text" style="margin-top:1.25rem;">
+        We post-train a context-smoothed <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" style="color:var(--green);">π<sub>0</sub></a> on
+        <a href="https://rail-berkeley.github.io/bridgedata/" target="_blank" style="color:var(--green);">BridgeData-v2</a> (WidowX 250) and
+        <a href="https://droid-dataset.github.io/" target="_blank" style="color:var(--green);">DROID</a> (Franka Panda)
+        by noising VLM embedding contexts with the CSP objective.
+        TMRL then modulates σ during post-training—aliasing the current context with related dataset behaviors to approach the broad, high-entropy marginal when needed.
+    </p>
+
+    <div class="pub-img" style="margin-top:1.25rem;">
+        <a href="#" data-lb="static/figures/real_results.png">
+            <img src="static/figures/real_results.png" alt="Real-world RL fine-tuning results">
+        </a>
+        <p class="cap"><strong>Real-world results.</strong> From a base π<sub>0</sub> that often fails, TMRL post-trains to high success in under one hour. DSRL shows negligible learning—it cannot reach beyond the base policy's conditional support.</p>
+    </div>
+</section>
+
+<div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
+
+<!-- ══════════ ROLLOUTS ══════════ -->
+<section class="page-section" id="sec-rollouts">
+    <h2 class="section-head">Pre-trained Rollouts &amp; Learning Videos</h2>
+
+    <p class="body-text">
+        Context smoothing broadens π<sub>0</sub>'s pre-trained action support, which TMRL then leverages for faster adaptation.
+    </p>
+
+    <div class="rw-tabs" style="margin-top:1rem;">
+        <button class="rw-tab active" data-task="widowx_sausage" onclick="rwSetTask(this)">WidowX — Sausage</button>
+        <button class="rw-tab" data-task="widowx_shrimp" onclick="rwSetTask(this)">WidowX — Shrimp</button>
+        <button class="rw-tab" data-task="droid_button" onclick="rwSetTask(this)">DROID — Button</button>
+    </div>
+
+    <div class="sub-head">Pre-trained Rollouts</div>
+    <div class="rollout-grid">
+        <div class="rollout-col">
+            <div class="rollout-col-title">π<sub>0</sub> (base)</div>
+            <div id="rw-pi0-grid" class="rollout-vid-grid"></div>
+        </div>
+        <div class="rollout-col">
+            <div class="rollout-col-title">Context-Smoothed π<sub>0</sub> (ours)</div>
+            <div id="rw-csp-grid" class="rollout-vid-grid"></div>
+        </div>
+    </div>
+
+    <div class="sub-head" style="margin-top:1.5rem;">Real-World Learning Curve</div>
+    <div class="learning-wrap">
+        <div class="learning-title" id="rw-learning-title">WidowX — Sausage</div>
+        <div style="background:#111; line-height:0;">
+            <video id="rw-learning-video" autoplay loop muted playsinline controls style="width:100%; display:block;">
+                <source src="static/videos/widowx_sausage_learning.mp4" type="video/mp4">
+            </video>
         </div>
     </div>
 </section>
 
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
-
-<style>
-.rw-rollout-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 1rem;
-    font-family: 'Palatino', sans-serif;
-}
-.rw-rollout-tab {
-    font-family: 'Palatino', sans-serif;
-    font-size: 0.88rem;
-    padding: 5px 16px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    background: #fff;
-    cursor: pointer;
-    color: #444;
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
-}
-.rw-rollout-tab.active {
-    background: #248656;
-    color: #fff;
-    border-color: #248656;
-}
-.rw-rollout-compare {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-    font-family: 'Palatino', sans-serif;
-}
-.rw-rollout-col {
-    border: 1px solid #e3e3e3;
-    border-radius: 8px;
-    padding: 0.75rem;
-    background: #fafafa;
-}
-.rw-rollout-title {
-    font-family: 'Palatino', sans-serif;
-    color: #248656;
-    font-size: 0.95rem;
-    font-weight: 700;
-    margin-bottom: 0.55rem;
-    text-align: center;
-}
-.rw-rollout-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-}
-.rw-rollout-cell {
-    border-radius: 6px;
-    overflow: hidden;
-    background: #111;
-    line-height: 0;
-    border: 1px solid #e8e8e8;
-}
-.rw-rollout-cell video {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    display: block;
-}
-@media (max-width: 1024px) {
-    .rw-rollout-grid {
-        grid-template-columns: repeat(4, minmax(120px, 1fr));
-        overflow-x: auto;
-        padding-bottom: 4px;
-    }
-}
-@media (max-width: 768px) {
-    .rw-rollout-compare {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-
-<section class="section compact" id="real-world-rollout-compare">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">Pre-trained Rollouts &amp; Learning Videos</h2>
-        <div class="content has-text-justified">
-            <p>
-                We compare pre-trained behavior from the base &pi;<sub>0</sub> and context-smoothed &pi;<sub>0</sub>, then show the corresponding real-world RL learning trajectory. Context smoothing broadens pre-trained action support for downstream TMRL adaptation.
-            </p>
-        </div>
-
-        <div class="rw-rollout-tabs">
-            <button class="rw-rollout-tab active" data-task="widowx_sausage" onclick="setRwTask(this)">WidowX — Sausage</button>
-            <button class="rw-rollout-tab" data-task="widowx_shrimp" onclick="setRwTask(this)">WidowX — Shrimp</button>
-            <button class="rw-rollout-tab" data-task="droid_button" onclick="setRwTask(this)">Droid — Button</button>
-        </div>
-
-        <h3 style="font-family:'Palatino', sans-serif; font-size:1.2rem; color:#248656; margin:0.25rem 0 0.85rem;">Pre-trained Rollouts</h3>
-        <div class="rw-rollout-compare">
-            <div class="rw-rollout-col">
-                <div class="rw-rollout-title">&pi;<sub>0</sub> (base)</div>
-                <div id="rw-rollout-pi0-grid" class="rw-rollout-grid"></div>
-            </div>
-            <div class="rw-rollout-col">
-                <div class="rw-rollout-title">Context-Smoothed &pi;<sub>0</sub> (ours)</div>
-                <div id="rw-rollout-cspi0-grid" class="rw-rollout-grid"></div>
-            </div>
-        </div>
-
-        <h3 style="font-family:'Palatino', sans-serif; font-size:1.2rem; color:#248656; margin:1.25rem 0 0.85rem;">Real-World Learning</h3>
-        <div class="rw-learning-wrap">
-            <div class="rw-learning-title" id="rw-learning-title">WidowX — Sausage</div>
-            <div class="rw-learning-video-frame">
-                <video id="rw-learning-video" autoplay loop muted playsinline controls>
-                    <source src="static/videos/widowx_sausage_learning.mp4" type="video/mp4">
-                </video>
-            </div>
-        </div>
-    </div>
-</section>
-
-<style>
-.rw-learning-wrap {
-    background: #fafafa;
-    border: 1px solid #e3e3e3;
-    border-radius: 8px;
-    padding: 0.75rem;
-}
-.rw-learning-title {
-    font-family: 'Palatino', sans-serif;
-    color: #248656;
-    font-size: 0.95rem;
-    font-weight: 700;
-    margin-bottom: 0.55rem;
-    text-align: center;
-}
-.rw-learning-video-frame {
-    border-radius: 8px;
-    overflow: hidden;
-    background: #111;
-    line-height: 0;
-}
-#rw-learning-video {
-    width: 100%;
-    display: block;
-}
-</style>
-
+<!-- ROLLOUT JS -->
 <script>
-(function () {
-    var ROLL_INDICES = [0, 1, 2, 3];
-    var _task = 'widowx_sausage';
-
-    function pad3(n) { return String(n).padStart(3, '0'); }
-    var TASK_LABEL = {
-        widowx_sausage: 'WidowX — Sausage',
-        widowx_shrimp: 'WidowX — Shrimp',
-        droid_button: 'Droid — Button'
-    };
-    var LEARNING_VIDEO = {
-        widowx_sausage: 'static/videos/widowx_sausage_learning.mp4',
-        widowx_shrimp: 'static/videos/widowx_shrimp_learning.mp4',
-        droid_button: 'static/videos/droid_learning.mp4'
-    };
-
-    function makeVideoCell(src, label) {
-        var cell = document.createElement('div');
-        cell.className = 'rw-rollout-cell';
-        var vid = document.createElement('video');
-        vid.src = src;
-        vid.autoplay = true;
-        vid.loop = true;
-        vid.muted = true;
-        vid.setAttribute('playsinline', '');
-        vid.title = label;
-        cell.appendChild(vid);
-        return cell;
+(function(){
+    var _task='widowx_sausage';
+    var LABELS={widowx_sausage:'WidowX — Sausage',widowx_shrimp:'WidowX — Shrimp',droid_button:'DROID — Button'};
+    var LVIDS={widowx_sausage:'static/videos/widowx_sausage_learning.mp4',widowx_shrimp:'static/videos/widowx_shrimp_learning.mp4',droid_button:'static/videos/droid_learning.mp4'};
+    function p3(n){return String(n).padStart(3,'0');}
+    function mkCell(src){
+        var cell=document.createElement('div'); cell.className='rollout-cell';
+        var v=document.createElement('video'); v.src=src; v.autoplay=true; v.loop=true; v.muted=true; v.setAttribute('playsinline','');
+        cell.appendChild(v); return cell;
     }
-
-    function renderRwRollouts() {
-        var pi0Grid = document.getElementById('rw-rollout-pi0-grid');
-        var cspi0Grid = document.getElementById('rw-rollout-cspi0-grid');
-        pi0Grid.innerHTML = '';
-        cspi0Grid.innerHTML = '';
-        ROLL_INDICES.forEach(function (idx) {
-            var pi0Src = 'static/videos/real_world_rollouts/' + _task + '/pi0/ep_' + pad3(idx) + '.mp4';
-            var cspi0Src = 'static/videos/real_world_rollouts/' + _task + '/cspi0/ep_' + pad3(idx) + '.mp4';
-            pi0Grid.appendChild(makeVideoCell(pi0Src, 'pi0 rollout ' + idx));
-            cspi0Grid.appendChild(makeVideoCell(cspi0Src, 'cspi0 rollout ' + idx));
+    function render(){
+        var pi=document.getElementById('rw-pi0-grid'); var cs=document.getElementById('rw-csp-grid');
+        pi.innerHTML=''; cs.innerHTML='';
+        [0,1,2,3].forEach(function(i){
+            pi.appendChild(mkCell('static/videos/real_world_rollouts/'+_task+'/pi0/ep_'+p3(i)+'.mp4'));
+            cs.appendChild(mkCell('static/videos/real_world_rollouts/'+_task+'/cspi0/ep_'+p3(i)+'.mp4'));
         });
+        document.getElementById('rw-learning-title').textContent=LABELS[_task];
+        var vid=document.getElementById('rw-learning-video'); var src=vid.querySelector('source');
+        src.src=LVIDS[_task]; vid.load(); vid.play().catch(function(){});
     }
-
-    function renderRwLearning() {
-        var learningTitle = document.getElementById('rw-learning-title');
-        var learningVideo = document.getElementById('rw-learning-video');
-        var source = learningVideo.querySelector('source');
-        learningTitle.textContent = TASK_LABEL[_task];
-        source.src = LEARNING_VIDEO[_task];
-        learningVideo.load();
-        learningVideo.play().catch(function () {});
-    }
-
-    window.setRwTask = function (btn) {
-        document.querySelectorAll('.rw-rollout-tab').forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        _task = btn.dataset.task;
-        renderRwRollouts();
-        renderRwLearning();
+    window.rwSetTask=function(btn){
+        document.querySelectorAll('.rw-tab').forEach(function(b){b.classList.remove('active');}); btn.classList.add('active');
+        _task=btn.dataset.task; render();
     };
-
-    renderRwRollouts();
-    renderRwLearning();
-})();
+    render();
+}());
 </script>
 
-<section class="section compact">
-    <div class="container is-max-desktop">
-        <hr>
-    </div>
-</section>
+<div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
 
-<!-- BibTeX -->
-<section class="section compact" id="section-bibtex">
-    <div class="container is-max-desktop">
-        <h2 class="title is-3">BibTeX</h2>
-        <div class="bibtex-box">@misc{hong2026tmrl,
-  title={{TMRL}: Context-Smoothed Pre-training Enables Efficient {RL} via Diffusion Timestep Modulation},
-  author={Hong, Matthew M. and Zhang, Jesse and Nagabandi, Anusha and Gupta, Abhishek},
-  year={2026},
-  url={https://github.com/matthewh6/tmrl},
-  note={Add arXiv id and official venue when available},
+<!-- ══════════ BIBTEX ══════════
+<section class="page-section" id="sec-bibtex">
+    <h2 class="section-head">BibTeX</h2>
+    <div class="bibtex-box">@misc{hong2026tmrl,
+  title  = {{TMRL}: Context-Smoothed Pre-training Enables Efficient {RL}
+             via Diffusion Timestep Modulation},
+  author = {Hong, Matthew M. and Zhang, Jesse and Nagabandi, Anusha
+             and Gupta, Abhishek},
+  year   = {2026},
+  url    = {https://github.com/matthewh6/tmrl},
+  note   = {arXiv id and venue TBD},
 }</div>
-    </div>
-</section>
+</section> -->
 
-<!-- Footer -->
-<footer class="footer">
-    <div class="container is-max-desktop">
-        <div class="content has-text-centered">
-            <p>This website is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-SA 4.0 License</a>.</p>
-        </div>
-    </div>
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    Licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" style="color:var(--green);">CC BY-SA 4.0</a>.
+    Website template adapted from academic project pages.
 </footer>
 
-<div class="lb-overlay" id="lb-overlay">
-    <button class="lb-close" id="lb-close">✕</button>
+<!-- ══════════ LIGHTBOX ══════════ -->
+<div class="lb" id="lb">
+    <button class="lb-x" id="lb-x">✕</button>
     <img id="lb-img" src="" alt="">
+    <video id="lb-vid" autoplay loop muted playsinline></video>
 </div>
 
+<!-- ══════════ SCRIPTS ══════════ -->
 <script>
-// ── Lightbox ──────────────────────────────────────────────────────────────
-document.querySelectorAll('[data-lb-src]').forEach(function(el) {
-    el.addEventListener('click', function(e) {
+// Lightbox (images)
+var lbEl=document.getElementById('lb');
+var lbImg=document.getElementById('lb-img');
+var lbVid=document.getElementById('lb-vid');
+function lbClose(){
+    lbEl.classList.remove('open');
+    lbVid.pause(); lbVid.src=''; lbVid.style.display='none';
+    lbImg.src=''; lbImg.style.display='';
+}
+document.querySelectorAll('[data-lb]').forEach(function(el){
+    el.addEventListener('click',function(e){
         e.preventDefault();
-        document.getElementById('lb-img').src = this.dataset.lbSrc;
-        document.getElementById('lb-overlay').classList.add('open');
+        lbVid.style.display='none'; lbImg.style.display='';
+        lbImg.src=this.dataset.lb;
+        lbEl.classList.add('open');
     });
 });
-document.getElementById('lb-overlay').addEventListener('click', function(e) {
-    if (e.target === this || e.target.id === 'lb-close') this.classList.remove('open');
+// Lightbox (rollout videos) — event delegation for dynamically created cells
+document.addEventListener('click',function(e){
+    var cell=e.target.closest('.rollout-cell');
+    if(!cell) return;
+    var src=cell.querySelector('video')&&cell.querySelector('video').src;
+    if(!src) return;
+    lbImg.style.display='none';
+    lbVid.style.display='block';
+    lbVid.src=src; lbVid.play().catch(function(){});
+    lbEl.classList.add('open');
+});
+lbEl.addEventListener('click',function(e){
+    if(e.target===this||e.target.id==='lb-x') lbClose();
+});
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') lbClose(); });
+
+// Page fade-in
+document.addEventListener('DOMContentLoaded',function(){
+    requestAnimationFrame(function(){ document.body.classList.add('loaded'); });
 });
 
-// ── Page fade-in ──────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function () {
-    // Give the browser one frame to paint styles before fading in
-    requestAnimationFrame(function () {
-        document.body.classList.add('page-loaded');
-    });
+// Static video fade-in
+document.querySelectorAll('.static-vid').forEach(function(v){
+    function show(){ v.classList.add('ready'); }
+    if(v.readyState>=2) show();
+    else { v.addEventListener('canplay',show,{once:true}); setTimeout(show,1500); }
 });
 
-// ── Static video fade-in on canplay ───────────────────────────────────────
-document.querySelectorAll('video.static-video').forEach(function (vid) {
-    function reveal() { vid.classList.add('vid-ready'); }
-    if (vid.readyState >= 2) {
-        reveal();
-    } else {
-        vid.addEventListener('canplay', reveal, { once: true });
-        // Fallback: show after 1.5s even if canplay never fires
-        setTimeout(reveal, 1500);
+// Section nav active state + hero compact + crumb
+(function(){
+    var nav=document.getElementById('section-nav');
+    var ids=['sec-overview','sec-sweep','sec-motivation','sec-method','sec-sim','sec-real','sec-rollouts','sec-bibtex'];
+    var links=document.querySelectorAll('#section-nav a');
+    var crumb=document.getElementById('nav-crumb');
+    var navHero=document.getElementById('nav-hero');
+
+    // Dynamic scroll-margin-top to always match actual nav height
+    var sections=document.querySelectorAll('.page-section');
+    function syncScrollMargins(){
+        var h=nav.offsetHeight+'px';
+        sections.forEach(function(s){ s.style.scrollMarginTop=h; });
     }
-});
-</script>
+    window.addEventListener('scroll',syncScrollMargins,{passive:true});
+    window.addEventListener('resize',syncScrollMargins);
+    syncScrollMargins();
 
-<script>
-(function () {
-    var NAV_IDS = [
-        'section-overview',
-        'noise-sweep-section',
-        'section-motivation',
-        'section-method',
-        'section-sim',
-        'real-world-section',
-        'real-world-rollout-compare',
-        'section-bibtex'
-    ];
-
-    var navLinks = document.querySelectorAll('#section-nav a');
-    navLinks.forEach(function (a) {
-        a.addEventListener('click', function (e) {
-            e.preventDefault();
-            var href = this.getAttribute('href');
-            var target = document.querySelector(href);
-            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Show compact hero title once hero scrolls out of view
+    var heroObs=new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+            navHero.classList.toggle('visible',!e.isIntersecting);
+            syncScrollMargins();
         });
-    });
+    },{threshold:0});
+    var heroEl=document.querySelector('.hero-wrap');
+    if(heroEl) heroObs.observe(heroEl);
 
-    var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-                var id = entry.target.id;
-                navLinks.forEach(function (a) {
-                    a.classList.toggle('nav-active', a.getAttribute('href') === '#' + id);
-                });
+    // Active section highlight
+    var obs=new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+            if(e.isIntersecting){
+                var id=e.target.id;
+                links.forEach(function(a){ a.classList.toggle('active',a.getAttribute('href')==='#'+id); });
             }
         });
-    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    },{rootMargin:'-8% 0px -72% 0px',threshold:0});
+    ids.forEach(function(id){ var el=document.getElementById(id); if(el) obs.observe(el); });
 
-    NAV_IDS.forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) observer.observe(el);
+    // Nav link clicks use dynamic offset
+    links.forEach(function(a){
+        a.addEventListener('click',function(e){
+            e.preventDefault();
+            var t=document.querySelector(this.getAttribute('href'));
+            if(t){
+                var top=t.getBoundingClientRect().top+window.scrollY-nav.offsetHeight;
+                window.scrollTo({top:top,behavior:'smooth'});
+            }
+        });
     });
-})();
+
+    // Crumb: show full h2 text once it scrolls behind the nav
+    var headings=ids.map(function(id){
+        var el=document.getElementById(id);
+        return el ? el.querySelector('h2.section-head') : null;
+    });
+    var lastCrumb='';
+    function updateCrumb(){
+        var top=nav.offsetHeight;
+        var current=null;
+        headings.forEach(function(h){ if(h && h.getBoundingClientRect().bottom<top) current=h; });
+        var text=current ? current.textContent : '';
+        if(text!==lastCrumb){
+            lastCrumb=text;
+            crumb.textContent=text;
+            crumb.classList.toggle('visible',!!text);
+            syncScrollMargins();
+        }
+    }
+    window.addEventListener('scroll',updateCrumb,{passive:true});
+    updateCrumb();
+}());
 </script>
 
 </body>
