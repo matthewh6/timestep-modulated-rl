@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TMRL: Context-Smoothed Pre-training Enables Efficient Policy Post-training</title>
-    <meta name="description" content="TMRL bridges BC pre-training and RL post-training, enabling real-world robot learning in under one hour.">
+    <title>TMRL: Context-Smoothed Pre-training Enables Efficient Policy Fine-tuning</title>
+    <meta name="description" content="TMRL bridges BC pre-training and RL fine-tuning, enabling real-world robot learning in under one hour.">
 
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
@@ -589,7 +589,7 @@
 <!-- ══════════ HERO ══════════ -->
 <div class="hero-wrap">
     <h1 class="pub-title">
-        <span style="color:var(--green)">TMRL</span>: Context-Smoothed Pre-training Enables<br>Efficient Policy Post-training
+        <span style="color:var(--green)">TMRL</span>: Context-Smoothed Pre-training Enables<br>Efficient Policy Fine-tuning
     </h1>
 
     <div class="author-list">
@@ -615,7 +615,7 @@
 <!-- ══════════ NAV ══════════ -->
 <nav id="section-nav">
     <div id="nav-hero">
-        <span id="nav-hero-title"><span style="color:var(--green)">TMRL</span>: Context-Smoothed Pre-training Enables Efficient Policy Post-training</span>
+        <span id="nav-hero-title"><span style="color:var(--green)">TMRL</span>: Context-Smoothed Pre-training Enables Efficient Policy Fine-tuning</span>
         <span id="nav-hero-authors">M. Hong, J. Zhang, A. Nagabandi, A. Gupta</span>
         <div id="nav-hero-btns">
             <span class="btn btn-ghost" style="padding:0.18rem 0.6rem; font-size:0.73rem;"><i class="ai ai-arxiv"></i> arXiv</span>
@@ -649,7 +649,7 @@
     <h2 class="section-head">Overview</h2>
 
     <p class="body-text">
-        BC pre-training for RL post-training is promising, but standard BC produces
+        BC pre-training for RL fine-tuning is promising, but standard BC produces
         <strong>narrow, overconfident action distributions</strong> that collapse in unseen contexts—the policy
         assigns near-zero probability to potentially optimal actions.
     </p>
@@ -661,9 +661,9 @@
             <div class="ic-body">Injects forward-diffusion noise into policy <em>inputs</em>, creating a tunable spectrum from precise conditional imitation <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) to broad marginal coverage <em>p</em>(<i>a</i>).</div>
         </div>
         <div class="insight-card">
-            <div class="ic-label">Post-training</div>
+            <div class="ic-label">Fine-tuning</div>
             <div class="ic-title">Timestep-Modulated RL (TMRL)</div>
-            <div class="ic-body">Trains a high-level RL policy &pi;<sub>HL</sub> that dynamically adjusts the diffusion timestep &sigma; during post-training — using large &sigma; to alias contexts and approach the broad, high-entropy marginal <em>p</em>(<i>a</i>), and small &sigma; to sharpen toward the precise imitation conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>).</div>
+            <div class="ic-body">Trains a high-level RL policy &pi;<sub>HL</sub> that dynamically adjusts the diffusion timestep &sigma; during fine-tuning — using large &sigma; to alias contexts and approach the broad, high-entropy marginal <em>p</em>(<i>a</i>), and small &sigma; to sharpen toward the precise imitation conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>).</div>
         </div>
     </div>
 
@@ -1049,7 +1049,7 @@
         <a href="https://rail-berkeley.github.io/bridgedata/" target="_blank" style="color:var(--green);">BridgeData-v2</a> (WidowX 250) and
         <a href="https://droid-dataset.github.io/" target="_blank" style="color:var(--green);">DROID</a> (Franka Panda)
         by noising VLM embedding contexts with the CSP objective.
-        TMRL then modulates σ during post-training—aliasing the current context with related dataset behaviors to approach the broad, high-entropy marginal when needed.
+        TMRL then modulates σ during fine-tuning—aliasing the current context with related dataset behaviors to approach the broad, high-entropy marginal when needed.
     </p>
 
     <div class="pub-img" style="margin-top:1.25rem;">
