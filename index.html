@@ -83,6 +83,8 @@
             text-align: center;
             max-width: 960px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .author-list {
@@ -141,8 +143,10 @@
             display: flex;
             justify-content: center;
             gap: 0.6rem;
-            margin-top: 0.9rem;
+            margin-top: auto;
+            margin-bottom: 0;
             flex-wrap: wrap;
+            padding-top: 1.5rem;
         }
         .btn {
             display: inline-flex;
@@ -582,33 +586,295 @@
             margin: 0 auto 1rem;
             max-width: 640px;
         }
+
+        /* ══ SMP-INSPIRED DESIGN ENHANCEMENTS ══ */
+
+        /* Pill buttons */
+        .btn { border-radius: 999px; }
+
+        /* Cinematic hero */
+        .hero-cinematic {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #07101d;
+            /* override .hero-wrap constraints */
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100%;
+        }
+        .hero-cin-video {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 102%; height: 102%;
+            transform: translate(-50%,-50%);
+            object-fit: cover;
+            opacity: 0.62;
+            pointer-events: none;
+        }
+        .hero-cin-scrim {
+            position: absolute;
+            inset: 0;
+            background:
+                /* strong dark band over title area */
+                linear-gradient(180deg,
+                    rgba(7,16,29,0.62) 0%,
+                    rgba(7,16,29,0.30) 22%,
+                    rgba(7,16,29,0.44) 50%,
+                    rgba(7,16,29,0.32) 76%,
+                    rgba(7,16,29,0.68) 100%),
+                /* edge vignette */
+                radial-gradient(ellipse 110% 100% at 50% 50%, transparent 38%, rgba(7,16,29,0.38) 100%);
+            pointer-events: none;
+        }
+        .hero-cin-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 4.5rem 1.5rem 4rem;
+            max-width: 900px;
+            width: 100%;
+        }
+        .hero-cinematic .pub-title { color: #fff; text-shadow: 0 2px 22px rgba(0,0,0,0.45); }
+        .hero-cinematic .pub-title .cin-accent { color: #5dcfa8; }
+        .hero-cinematic .author-list { color: rgba(255,255,255,0.76); margin-top: 1.2rem; }
+        .hero-cinematic .author-list a { color: #7de5bb; }
+        .hero-cinematic .author-list a:hover { color: #b0f0d8; }
+        .hero-cinematic .affil { color: rgba(255,255,255,0.44); }
+        .btn-glass {
+            background: rgba(255,255,255,0.09);
+            color: rgba(255,255,255,0.82);
+            border-color: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .btn-glass:hover { background: rgba(255,255,255,0.17); color: #fff; }
+        .btn-glass-green {
+            background: rgba(31,122,79,0.5);
+            color: #b8f0d8;
+            border-color: rgba(93,207,168,0.35);
+            backdrop-filter: blur(10px);
+        }
+        .btn-glass-green:hover { background: rgba(45,158,102,0.62); color: #fff; }
+
+        /* TL;DR section */
+        .tldr-section {
+            background: #f7f9fb;
+            border-top: 1px solid var(--rule);
+            border-bottom: 1px solid var(--rule);
+            padding: 3rem 1.5rem 3.5rem;
+        }
+        .tldr-inner { max-width: 960px; margin: 0 auto; }
+        .tldr-kicker {
+            font-family: 'Palatino', serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--green);
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+        .tldr-head {
+            font-family: 'Palatino', serif;
+            font-size: 1.38rem;
+            font-weight: 600;
+            color: var(--ink);
+            text-align: center;
+            margin: 0 0 1.85rem;
+            line-height: 1.35;
+        }
+        .tldr-grid {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 1.2rem;
+        }
+        @media (max-width:720px) { .tldr-grid { grid-template-columns: 1fr; } }
+        .tldr-card {
+            position: relative;
+            border: 1px solid var(--rule);
+            border-radius: 14px;
+            padding: 1.8rem 1.5rem 1.5rem;
+            background: #fff;
+            overflow: hidden;
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .tldr-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--green), var(--green-mid));
+            opacity: 0;
+            transition: opacity .25s ease;
+        }
+        .tldr-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(0,0,0,0.09); }
+        .tldr-card:hover::before { opacity: 1; }
+        .tldr-num {
+            display: inline-block;
+            font-family: 'Palatino', serif;
+            font-size: 0.67rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--green);
+            background: var(--green-light);
+            padding: .22rem .68rem;
+            border-radius: 999px;
+            margin-bottom: .9rem;
+        }
+        .tldr-title {
+            font-family: 'Palatino', serif;
+            font-size: 1.06rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: .48rem;
+            line-height: 1.3;
+        }
+        .tldr-body { font-size: .92rem; color: var(--ink-soft); line-height: 1.65; }
+
+        /* Pillar components */
+        .pillar-grid { display: flex; flex-direction: column; gap: .7rem; margin: 1.2rem 0 1.5rem; }
+        .pillar {
+            padding: 1rem 1.4rem;
+            border-left: 3px solid var(--green);
+            background: linear-gradient(90deg, var(--green-light) 0%, transparent 88%);
+            border-radius: 0 10px 10px 0;
+        }
+        .pillar-label {
+            font-family: 'Palatino', serif;
+            font-size: .67rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: .25rem;
+        }
+        .pillar-title {
+            font-family: 'Palatino', serif;
+            font-size: .98rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: .28rem;
+        }
+        .pillar-body { font-size: .92rem; color: var(--ink-soft); line-height: 1.62; }
+
+        /* Result-tag pill */
+        .result-tag {
+            display: inline-block;
+            font-family: 'Palatino', serif;
+            font-size: .67rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--green);
+            background: var(--green-light);
+            padding: .26rem .72rem;
+            border-radius: 999px;
+            margin-bottom: .55rem;
+        }
+
+        /* Dark section band */
+        .section-band--dark {
+            background: linear-gradient(158deg, #0b1120 0%, #141f34 55%, #0f1828 100%);
+            color: rgba(218,230,244,0.88);
+        }
+        .section-band--dark * { color: inherit; }
+        .section-band--dark .section-head { color: #5dcfa8; }
+        .section-band--dark .body-text { color: rgba(218,230,244,0.82); }
+        .section-band--dark .body-text strong { color: rgba(218,230,244,0.97); }
+        .section-band--dark .result-callout {
+            background: rgba(93,207,168,0.09);
+            border-left-color: #2d9e66;
+        }
+        .section-band--dark .result-callout .big { color: #5dcfa8; }
+        .section-band--dark .result-callout .desc { color: rgba(218,230,244,0.85); }
+        .section-band--dark .result-callout .desc strong { color: #fff; }
+        .section-band--dark .cap { color: rgba(218,230,244,0.52); }
+        .section-band--dark .cap strong { color: rgba(218,230,244,0.82); }
+        .section-band--dark .sub-head { color: #5dcfa8; }
+        .section-band--dark .result-tag { color: #5dcfa8; background: rgba(93,207,168,0.12); }
+        .section-band--dark .pub-img img { box-shadow: 0 6px 32px rgba(0,0,0,0.48); }
+        .section-band--dark a[style*="green"] { color: #7de5bb !important; }
+
+        /* Figure hover lift */
+        .pub-img { transition: transform .25s ease, box-shadow .25s ease; }
+        .pub-img:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
 <!-- ══════════ HERO ══════════ -->
-<div class="hero-wrap">
-    <h1 class="pub-title">
-        <span style="color:var(--green)">TMRL</span>: Context-Smoothed Pre-training Enables<br>Efficient Policy Fine-tuning
-    </h1>
-
-    <div class="author-list">
-        <a href="https://matthewh6.github.io/" target="_blank">Matthew Hong<sup>1</sup></a>,&ensp;
-        <a href="https://www.jessezhang.net/" target="_blank">Jesse Zhang<sup>1</sup></a>,&ensp;
-        <a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en/" target="_blank">Anusha Nagabandi<sup>2</sup></a>,&ensp;
-        <a href="https://abhishekunique.github.io/" target="_blank">Abhishek Gupta<sup>1</sup></a>
+<div class="hero-wrap hero-cinematic">
+    <video class="hero-cin-video" autoplay loop muted playsinline>
+        <source src="static/videos/website_teaser_short.mp4" type="video/mp4">
+    </video>
+    <div class="hero-cin-scrim"></div>
+    <div class="hero-cin-content">
+        <h1 class="pub-title">
+            <span class="cin-accent">TMRL</span>: Context-Smoothed Pre-training<br>Enables Efficient Policy Post-training
+        </h1>
+        <div class="author-list">
+            <a href="https://matthewh6.github.io/" target="_blank">Matthew Hong<sup>1</sup></a>,&ensp;
+            <a href="https://www.jessezhang.net/" target="_blank">Jesse Zhang<sup>1</sup></a>,&ensp;
+            <a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en/" target="_blank">Anusha Nagabandi<sup>2</sup></a>,&ensp;
+            <a href="https://abhishekunique.github.io/" target="_blank">Abhishek Gupta<sup>1</sup></a>
+        </div>
+        <div class="affil">
+            <sup>1</sup>University of Washington &nbsp;&nbsp; <sup>2</sup>Amazon FAR (Frontier AI &amp; Robotics)
+        </div>
+        <div class="btn-row" style="padding-top:2rem;">
+            <span class="btn btn-glass">
+                <i class="ai ai-arxiv"></i> arXiv (coming soon)
+            </span>
+            <span class="btn btn-glass">
+                <i class="fab fa-github"></i> Code (coming soon)
+            </span>
+        </div>
+        <div style="margin-top:1.4rem;">
+            <button id="watch-video-btn" onclick="openVideoLb()" style="
+                background:none; border:none; cursor:pointer;
+                display:inline-flex; align-items:center; gap:6px;
+                color:rgba(255,255,255,0.48); font-family:'Palatino',serif;
+                font-size:0.78rem; letter-spacing:0.06em;
+                transition:color 0.2s;
+                padding:0;
+            " onmouseover="this.style.color='rgba(255,255,255,0.82)'" onmouseout="this.style.color='rgba(255,255,255,0.48)'">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;">
+                    <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                    <polygon points="6,4.5 6,10.5 11,7.5" fill="currentColor"/>
+                </svg>
+                Watch full teaser video
+            </button>
+        </div>
     </div>
-    <div class="affil">
-        <sup>1</sup>University of Washington &nbsp;&nbsp; <sup>2</sup>Amazon FAR (Frontier AI &amp; Robotics)
-    </div>
+</div>
 
-    <div class="btn-row">
-        <span class="btn btn-ghost">
-            <i class="ai ai-arxiv"></i> arXiv (coming soon)
-        </span>
-        <span class="btn btn-ghost">
-            <i class="fab fa-github"></i> Code (coming soon)
-        </span>
+<!-- ══ FULL VIDEO LIGHTBOX ══ -->
+<div id="video-lb" style="
+    display:none; position:fixed; inset:0; z-index:9998;
+    background:rgba(0,0,0,0.88); align-items:center; justify-content:center;
+    backdrop-filter:blur(6px);
+" onclick="if(event.target===this)closeVideoLb()">
+    <div style="position:relative; width:min(90vw,1100px); max-height:90vh;">
+        <video id="hero-full-video" controls playsinline style="
+            width:100%; border-radius:10px; background:#000;
+            box-shadow:0 20px 60px rgba(0,0,0,0.6);
+            display:block;
+        ">
+            <source src="static/videos/website_teaser_short.mp4" type="video/mp4">
+        </video>
+        <button onclick="closeVideoLb()" style="
+            position:absolute; top:-14px; right:-14px;
+            width:30px; height:30px; border-radius:50%;
+            background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2);
+            color:#fff; font-size:14px; cursor:pointer; line-height:1;
+            display:flex; align-items:center; justify-content:center;
+            backdrop-filter:blur(8px);
+        ">✕</button>
     </div>
 </div>
 
@@ -623,8 +889,9 @@
         </div>
     </div>
     <ul>
+        <li><a href="#sec-teaser">Key Idea</a></li>
         <li><a href="#sec-overview">Overview</a></li>
-        <li><a href="#sec-sweep">Context Noise Demo</a></li>
+        <li><a href="#sec-sweep">σ Sweep Demo</a></li>
         <li><a href="#sec-motivation">Motivation</a></li>
         <li><a href="#sec-method">Method</a></li>
         <li><a href="#sec-sim">Simulation</a></li>
@@ -635,11 +902,29 @@
     <div id="nav-crumb"></div>
 </nav>
 
-<!-- ══════════ TEASER VIDEO ══════════ -->
-<div class="page-section" style="padding-top:0; padding-bottom:1rem;">
-    <video class="static-vid" autoplay loop muted playsinline>
-        <source src="static/videos/website_teaser.mp4" type="video/mp4">
-    </video>
+<!-- ══════════ TL;DR CARDS ══════════ -->
+<div class="tldr-section">
+    <div class="tldr-inner">
+        <div class="tldr-kicker">TL;DR</div>
+        <h2 class="tldr-head">We present a unified framework that bridges BC pre-training and RL fine-tuning.</h2>
+        <div class="tldr-grid">
+            <div class="tldr-card">
+                <span class="tldr-num">01 — Pre-training</span>
+                <div class="tldr-title">Context-Smoothed Pre-training (CSP)</div>
+                <div class="tldr-body">We corrupt policy <em>inputs</em> (context <i>c</i>) with a forward-diffusion kernel q<sub>&sigma;</sub>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;<i>c</i>), training across all noise levels &sigma;. This creates a single policy that smoothly interpolates between the precise imitation conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) and the broad, high-entropy marginal <em>p</em>(<i>a</i>) — a continuously tunable coverage dial.</div>
+            </div>
+            <div class="tldr-card">
+                <span class="tldr-num">02 — RL Fine-tuning</span>
+                <div class="tldr-title">Timestep-Modulated RL (TMRL)</div>
+                <div class="tldr-body">A high-level RL policy &pi;<sub>HL</sub> jointly selects the latent action <i>z</i> <em>and</em> the noise level &sigma; at each timestep. Large &sigma; aliases the current context toward nearby training data for broad exploration; small &sigma; recovers the precise imitation conditional for task completion — all within a single trajectory.</div>
+            </div>
+            <!-- <div class="tldr-card">
+                <span class="tldr-num">03 — Real-World Speed</span>
+                <div class="tldr-title">Under One Hour on Real Robots</div>
+                <div class="tldr-body">Applied to a context-smoothed &pi;<sub>0</sub> on WidowX (BridgeData-v2) and Franka Panda (DROID) arms, TMRL reaches near-perfect success on manipulation tasks — sausage, shrimp, and button-press — in under one hour.</div>
+            </div> -->
+        </div>
+    </div>
 </div>
 
 <div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
@@ -658,7 +943,7 @@
         <div class="insight-card">
             <div class="ic-label">Pre-training</div>
             <div class="ic-title">Context-Smoothed Pre-training (CSP)</div>
-            <div class="ic-body">Injects forward-diffusion noise into policy <em>inputs</em>, creating a tunable spectrum from precise conditional imitation <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) to broad marginal coverage <em>p</em>(<i>a</i>).</div>
+            <div class="ic-body">Corrupts policy <em>inputs</em> with a forward-diffusion kernel q<sub>&sigma;</sub>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;<i>c</i>) and trains across all noise levels &sigma;. As &sigma; grows, nearby contexts alias together and the induced distribution broadens continuously toward <em>p</em>(<i>a</i>), exposing a full coverage spectrum at a single set of weights.</div>
         </div>
         <div class="insight-card">
             <div class="ic-label">Fine-tuning</div>
@@ -668,7 +953,7 @@
     </div>
 
     <p class="body-text" style="margin-top:1.2rem;">
-        CSP is input-agnostic: it applies identically to ground-truth states, 3D pointclouds, and VLM embeddings in large VLA models. In real-world experiments, TMRL achieves near-perfect success on complex manipulation in <strong>under one hour</strong> while many baselines remain near zero.
+        Unlike action-space perturbations (e.g. PostBC), CSP shifts the perturbation to the <em>context</em>, so the policy borrows coherent, structured action sequences from related training demonstrations rather than dithering with unstructured noise. CSP is input-agnostic: it applies identically to ground-truth states, 3D point clouds, and VLM embeddings in large VLA models. In real-world experiments, TMRL achieves near-perfect success on complex manipulation in <strong>under one hour</strong> while DSRL and other baselines remain near zero.
     </p>
 </section>
 
@@ -689,18 +974,15 @@
 </style>
 
 <section class="page-section" id="sec-sweep">
-    <h2 class="section-head">Conditional → Marginal: Effect of Context Noise &sigma;</h2>
+    <h2 class="section-head">From Conditional to Marginal: Sweeping Context Noise &sigma;</h2>
 
     <p class="body-text">
-        As &sigma; increases, nearby contexts overlap in representation space—the policy
-        <em>borrows</em> coherent action chunks from related contexts rather than relying on
-        unstructured noise. Drag the slider to sweep &sigma; from 0 to <em>T</em>.
+        As &sigma; increases, the corruption kernel q<sub>&sigma;</sub>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;<i>c</i>) spreads probability mass over nearby contexts — the policy <em>borrows</em> coherent action chunks from related training demonstrations rather than adding unstructured noise to actions. At &sigma;&thinsp;=&thinsp;0, behavior sharpens to the precise imitation conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>); at &sigma;&thinsp;=&thinsp;<em>T</em>, it approaches the broad marginal <em>p</em>(<i>a</i>). TMRL learns to exploit this spectrum during RL fine-tuning.
     </p>
 
     <!-- task tabs -->
     <div id="sweep-tabs" class="tab-row" style="margin-top:1rem;"></div>
 
-    <!-- language instruction (shown for LIBERO tasks) -->
     <code id="sweep-instruction" class="instruction-box" style="display:none;"></code>
 
     <!-- video grid -->
@@ -725,7 +1007,7 @@
     </div>
 
     <p class="cap" style="text-align:center; margin-top:0.75rem;">
-        <strong>Behavior broadens continuously with &sigma;.</strong> Low &sigma; preserves conditional precision; high &sigma; aliases nearby contexts, producing coherent but wider coverage.
+        <strong>Behavior broadens continuously with &sigma;.</strong> At low &sigma; the policy faithfully imitates the demonstration for the current context; as &sigma; rises, adjacent contexts alias together and the policy samples from a progressively broader mixture — coherent action structure is preserved throughout because the perturbation is in context space, not action space.
     </p>
 </section>
 
@@ -734,7 +1016,7 @@
 (function(){
     var NL = ['0.00','0.25','0.50','0.75','1.00'];
     var DL = ['(conditional)','','','','(marginal)'];
-    var SPECS = [], INSTR = {}, _task = 'cube_single', _idx = 0;
+    var SPECS = [], INSTR = {}, _task = '', _idx = 0;
     var RIDS = [0,1,2,3,4];
     var _pool = {};
     var _poolRoot = (function(){
@@ -746,7 +1028,7 @@
     function p3(n){ return String(n).padStart(3,'0'); }
     function cfg(id){
         var base = 'static/videos/context_noise_sweep/' + id;
-        return id === 'cube_single' ? {mode:'composite', base:base} : {mode:'multi', base:base};
+        return {mode:'composite', base:base};
     }
     function srcs(c, nl){
         return c.mode === 'composite'
@@ -760,9 +1042,6 @@
         NL.forEach(function(nl){ _pool[id][nl] = srcs(c,nl).map(mkVid); });
     }
     function fmtLabel(id){
-        if(id==='cube_single') return 'cube-single';
-        var p=id.split('_');
-        if(p.length>=3 && p[0]==='libero') return 'Libero-'+p.slice(1,-1).join('-')+' · Task '+p[p.length-1];
         return id.replace(/_/g,'-');
     }
     function setUI(){
@@ -845,18 +1124,9 @@
         document.addEventListener('touchend',function(){drag=false;});
     }());
 
-    function parse(txt){
-        var seen={},out=[];
-        txt.split('\n').forEach(function(l){ var t=l.trim(); if(!t)return; var m=t.match(/^([a-z0-9_]+):\s*(.*)$/i); if(m){var id=m[1].toLowerCase(); if(!seen[id]){seen[id]=true;out.push({id:id,instruction:m[2].trim()});}} });
-        return out;
-    }
-    function init(tasks){
-        SPECS=tasks.slice(); INSTR={};
-        SPECS.forEach(function(s){INSTR[s.id]=s.instruction||'';});
-        if(!INSTR[_task]) _task=SPECS[0].id;
-        renderTabs(); updateInstr(); preload(_task); render();
-    }
-    fetch('static/videos/context_noise_sweep/tasks.txt').then(function(r){return r.text();}).then(function(t){ var p=parse(t); if(p.length)init(p); }).catch(function(){});
+    _task='';
+    document.getElementById('sweep-tabs').style.display='none';
+    preload(_task); render();
 }());
 </script>
 
@@ -864,11 +1134,12 @@
 
 <!-- ══════════ MOTIVATION ══════════ -->
 <section class="page-section" id="sec-motivation">
-    <h2 class="section-head">The Need for Action Distribution Interpolation</h2>
+    <h2 class="section-head">Why Interpolation Between p(a&thinsp;|&thinsp;c) and p(a) Is Necessary</h2>
 
     <p class="body-text">
-        In an out-of-distribution 2D maze, the conditional distribution <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) is overfit and leads the agent away from the goal. The marginal <em>p</em>(<i>a</i>) has coverage but too much variation for precise finishing.
-        <strong>An optimal policy needs both</strong>—the broad, high-entropy marginal early, the precise imitation conditional late.
+        We illustrate the core tension with a 2D pointmaze from OGBench. Two policies are trained on in-distribution data: one learning the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) and one approximating the marginal <em>p</em>(<i>a</i>). Both are then evaluated on a <em>larger, out-of-distribution</em> maze with an unseen goal position.
+        The conditional policy overcommits to the training distribution and steers the agent <em>away</em> from the goal; the marginal has the coverage to reach the goal region but varies too broadly for precise finishing.
+        <strong>An ideal policy does both</strong> — broad marginal behavior far from the goal, precise conditional behavior near it.
     </p>
 
     <!-- 3-column exploration comparison -->
@@ -876,17 +1147,17 @@
         <div class="exp-mode">
             <div class="exp-mode-label bad">Problem</div>
             <div class="exp-mode-title"><em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) — BC only</div>
-            <div class="exp-mode-body">Near-zero support in novel contexts. RL is unable to get a reward signal.</div>
+            <div class="exp-mode-body">Overfit to training contexts. In novel states, the conditional collapses and assigns near-zero probability to optimal actions — RL cannot get a reward signal.</div>
         </div>
         <div class="exp-mode">
-            <div class="exp-mode-label ok">Problem</div>
+            <div class="exp-mode-label ok">Insufficient</div>
             <div class="exp-mode-title"><em>p</em>(<i>a</i>) — marginal only</div>
-            <div class="exp-mode-body">Broad coverage but too diffuse for task completion.</div>
+            <div class="exp-mode-body">Broad coverage enables reaching the goal region, but too diffuse for reliable task completion. Optimal actions remain extremely unlikely.</div>
         </div>
         <div class="exp-mode highlight">
             <div class="exp-mode-label good">Solution</div>
             <div class="exp-mode-title">CSP + TMRL</div>
-            <div class="exp-mode-body">A single policy that interpolates dynamically between the broad marginal and precise conditional when needed.</div>
+            <div class="exp-mode-body">A single pre-trained policy that interpolates dynamically — using broad marginal coverage for exploration and sharp conditional precision for execution.</div>
         </div>
     </div>
 
@@ -899,39 +1170,45 @@
             </video>
         </div>
         <div style="flex:1 1 280px; text-align:center;">
-            <div style="font-family:'Palatino',serif; font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:8px;"><em>p</em>(<i>a</i>) — marginal</div>
+            <div style="font-family:'Palatino',serif; font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:8px;"><em>p</em>(<i>a</i>) — marginal (CSP, σ = T)</div>
             <video class="static-vid" autoplay loop muted playsinline style="border-radius:6px; background:#111;">
                 <source src="static/videos/csp_pointmaze.mp4" type="video/mp4">
             </video>
         </div>
     </div>
-    <p class="cap">A useful policy tracks <em>p</em>(<i>a</i>) far from the goal and <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) near it. CSP pre-trains a policy that can do both; TMRL learns <em>when</em> to switch.</p>
+    <p class="cap"><strong>The fundamental tradeoff.</strong> The conditional (left) stays near-zero on the OOD goal; the marginal (right) has the coverage to approach it. CSP pre-trains a single policy capable of both extremes; TMRL learns <em>when</em> to use each — using broad marginal behavior early in the trajectory and sharpening to the conditional near the goal.</p>
 </section>
 
 <div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
 
 <!-- ══════════ METHOD ══════════ -->
 <section class="page-section" id="sec-method">
+    <div class="result-tag">Method</div>
     <h2 class="section-head">Method</h2>
 
     <div class="pub-img" style="margin-top:0.5rem;">
         <a href="#" data-lb="static/figures/method.png">
             <img src="static/figures/method.png" alt="TMRL method overview">
         </a>
-        <p class="cap"><strong>Fig. 3 from the paper.</strong> (<em>Left</em>) CSP pre-trains p<sub>θ</sub> across all noise levels by corrupting context <i>c</i> with q<sub>σ</sub>(c̃&thinsp;|&thinsp;c). (<em>Right</em>) TMRL exposes σ as an explicit conditioning-strength dial for the high-level RL policy π<sub>HL</sub>.</p>
+        <p class="cap"><strong>Fig. 3 from the paper.</strong> (<em>Left</em>) CSP pre-trains p<sub>θ</sub> across all noise levels by corrupting context <i>c</i> with the forward-diffusion kernel q<sub>σ</sub>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;c). The noise level σ is provided as an explicit input so the policy can be queried at any conditioning strength at inference time. (<em>Right</em>) TMRL exposes σ as a <em>coverage dial</em> for the high-level RL policy π<sub>HL</sub>, which jointly selects the latent <i>z</i> and σ to maximize downstream reward.</p>
     </div>
 
     <div class="pull-quote">
-        A steerable base policy, trained at all noise levels, with an RL agent that learns to modulate the diffusion timestep between the broad, high-entropy marginal and the precise imitation conditional.
+        A steerable base policy — trained at all noise levels via context smoothing — with a high-level RL agent that learns to modulate the diffusion timestep between the broad marginal for exploration and the precise conditional for execution.
     </div>
 
-    <p class="body-text">
-        <strong>CSP</strong> samples a corruption level σ, draws a noised context c̃ ~ q<sub>σ</sub>(c̃&thinsp;|&thinsp;c), and trains the policy on (c̃, σ). As σ grows, nearby contexts alias together and the distribution broadens continuously toward <em>p</em>(<i>a</i>).
-    </p>
-
-    <p class="body-text" style="margin-top:0.75rem;">
-        <strong>TMRL</strong> then trains π<sub>HL</sub> to jointly select the latent z <em>and</em> the timestep σ at each step. Large σ aliases contexts toward the broad, high-entropy marginal <em>p</em>(<i>a</i>); small σ recovers the precise imitation conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>)—even within a single trajectory.
-    </p>
+    <div class="pillar-grid">
+        <div class="pillar">
+            <div class="pillar-label">Pre-training — CSP</div>
+            <div class="pillar-title">Context-Smoothed Policy</div>
+            <div class="pillar-body">For each training pair (<i>c</i>,&thinsp;<i>a</i>), samples a noise level &sigma; and draws <span style="text-decoration:overline">c</span>&thinsp;~&thinsp;q<sub>&sigma;</sub>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;c), then optimizes p<sub>θ</sub>(<i>a</i>&thinsp;|&thinsp;<span style="text-decoration:overline">c</span>,&thinsp;&sigma;). As &sigma; grows, nearby contexts alias together and the induced distribution broadens toward <em>p</em>(<i>a</i>). Pre-training across all &sigma; ∈ [0,&thinsp;<em>T</em>] exposes a full coverage spectrum at a single set of policy weights.</div>
+        </div>
+        <div class="pillar">
+            <div class="pillar-label">RL Fine-tuning — TMRL</div>
+            <div class="pillar-title">Timestep-Modulated RL Policy</div>
+            <div class="pillar-body">With the base policy frozen, &pi;<sub>HL</sub>(<i>z</i>,&thinsp;&sigma;&thinsp;|&thinsp;<i>s</i>) is trained by off-policy actor-critic RL to maximize cumulative reward. Large &sigma; aliases the current context toward training data — providing structured, coherent exploration beyond the base policy's conditional support. Small &sigma; recovers precise imitation for task completion. TMRL selects &sigma; <em>per step</em>, enabling within-trajectory switching.</div>
+        </div>
+    </div>
 
     <!-- Method comparison table -->
     <div class="sub-head">How TMRL Compares</div>
@@ -939,7 +1216,7 @@
         <thead>
             <tr>
                 <th>Method</th>
-                <th>Explores beyond base policy?</th>
+                <th>Explores beyond p(a&thinsp;|&thinsp;c)?</th>
                 <th>Coherent action structure?</th>
                 <th>Adaptive per-step control?</th>
             </tr>
@@ -947,27 +1224,27 @@
         <tbody>
             <tr>
                 <td>RLPD</td>
-                <td><span class="partial">△ Gaussian noise only</span></td>
-                <td><span class="cross">✗</span></td>
+                <td><span class="partial">△ Gaussian action noise only</span></td>
+                <td><span class="cross">✗ Dithering</span></td>
                 <td><span class="cross">✗</span></td>
             </tr>
             <tr>
                 <td>DSRL</td>
-                <td><span class="cross">✗ Stuck at conditional support</span></td>
+                <td><span class="cross">✗ RL over policy's noise space — stuck at conditional support</span></td>
                 <td><span class="check">✓</span></td>
                 <td><span class="cross">✗</span></td>
             </tr>
             <tr>
                 <td>PostBC</td>
-                <td><span class="partial">△ Action-space Gaussian</span></td>
-                <td><span class="cross">✗ Dithering</span></td>
+                <td><span class="partial">△ Single-step Gaussian action ensemble</span></td>
+                <td><span class="cross">✗ Dithering across timesteps</span></td>
                 <td><span class="cross">✗ Fixed at pre-training</span></td>
             </tr>
             <tr class="ours">
                 <td><strong>TMRL (ours)</strong></td>
-                <td><span class="check">✓ Context aliasing</span></td>
-                <td><span class="check">✓ Borrows coherent chunks</span></td>
-                <td><span class="check">✓ RL-learned per step</span></td>
+                <td><span class="check">✓ Context aliasing — reaches beyond conditional support</span></td>
+                <td><span class="check">✓ Borrows coherent action chunks from dataset</span></td>
+                <td><span class="check">✓ RL-learned per step within trajectory</span></td>
             </tr>
         </tbody>
     </table>
@@ -976,7 +1253,7 @@
         <a href="#" data-lb="static/figures/context_smoothing.gif" style="width:42%; display:block; margin:0 auto;">
             <img src="static/figures/context_smoothing.gif" alt="Context smoothing visualization" style="width:100%;">
         </a>
-        <p class="cap" style="text-align:center;"><strong>Empirical validation.</strong> As σ increases, q<sub>σ</sub>(c̃&thinsp;|&thinsp;c) aliases nearby contexts—broadening coverage while preserving coherent action structure. At σ = 0, behavior sharpens to <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>); at σ → T, it approaches <em>p</em>(<i>a</i>).</p>
+        <p class="cap" style="text-align:center;"><strong>Empirical validation of context smoothing.</strong> A context-smoothed diffusion policy p(x,y&thinsp;|&thinsp;θ̂,σ) trained to produce 2D points on a unit circle conditioned on θ. As σ increases, the conditioning contours widen — the induced action distribution becomes broader and overlaps more across nearby contexts. At σ = 0, outputs concentrate precisely at θ = 0; at σ = T, the policy approaches the full marginal <em>p</em>(<i>a</i>).</p>
     </div>
 </section>
 
@@ -984,36 +1261,36 @@
 
 <!-- ══════════ SIMULATION ══════════ -->
 <section class="page-section" id="sec-sim">
+    <div class="result-tag">Benchmark Results</div>
     <h2 class="section-head">Simulation Results</h2>
 
-    <div class="sub-head">Action Coverage Before RL</div>
+    <div class="sub-head">Action Coverage Before RL — Success@K</div>
     <p class="body-text">
-        <strong>Success@K</strong> measures the fraction of out-of-distribution initial states where at least one of <em>K</em> base-policy rollouts succeeds — a direct proxy for demonstrator action coverage.
-        CSP outperforms standard BC and PostBC at every K, with the gap largest on cube-single where both baselines have near-zero coverage.
+        <strong>Success@K</strong> measures the fraction of out-of-distribution initial states where at least one of <em>K</em> base-policy rollouts succeeds — a direct empirical proxy for <em>demonstrator action coverage</em> (Eq.&thinsp;3 in the paper). We evaluate on two OGBench tasks: <strong>pointmaze-giant</strong> (navigation with a larger state space than the training set) and <strong>cube-single</strong> (manipulation from initial positions beyond the training data).
+        CSP achieves higher success@K at every K and across both tasks; the gap is most pronounced on cube-single, where BC and PostBC have essentially zero coverage.
     </p>
 
     <div class="pub-img" style="width:78%; margin:1rem auto 0;">
         <a href="#" data-lb="static/figures/success_at_k.png">
             <img src="static/figures/success_at_k.png" alt="Success@K comparison">
         </a>
-        <p class="cap"><strong>CSP unlocks action coverage before RL.</strong> BC and PostBC plateau near zero on cube-single; CSP achieves meaningful coverage at all K.</p>
+        <p class="cap"><strong>CSP unlocks action coverage before RL.</strong> BC and PostBC plateau near zero on cube-single; CSP achieves meaningful coverage at all K. This coverage advantage directly translates to RL sample efficiency.</p>
     </div>
 
     <div class="sub-head" style="margin-top:2rem;">RL Sample Efficiency</div>
     <p class="body-text">
-        This coverage advantage translates directly to RL. TMRL achieves near-100% success on both OGBench tasks and outperforms the best baseline by <strong>101% overall</strong>.
-        On long-horizon <strong>LIBERO-90</strong>, only TMRL achieves non-trivial success — DSRL's conditional distribution is too narrow to explore the task.
+        The coverage advantage translates directly into faster and higher RL success. We evaluate against four baselines: RLPD (off-policy RL with Gaussian action noise), DSRL (diffusion policy steering over action noise space), PostBC (action-space Gaussian broadening), and SPiRL (hierarchical skill RL). TMRL consistently outperforms all baselines.
     </p>
 
     <!-- key results callout -->
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin:1.2rem 0;">
         <div class="result-callout" style="margin:0;">
             <div class="big">+14%</div>
-            <div class="desc">over best baseline on <strong>pointmaze-giant</strong></div>
+            <div class="desc">over best baseline on <strong>pointmaze-giant</strong> (navigation)</div>
         </div>
         <div class="result-callout" style="margin:0;">
             <div class="big">+200%</div>
-            <div class="desc">over best baseline on <strong>cube-single</strong></div>
+            <div class="desc">over best baseline on <strong>cube-single</strong> (manipulation)</div>
         </div>
     </div>
 
@@ -1021,28 +1298,30 @@
         <a href="#" data-lb="static/figures/sim_results.png">
             <img src="static/figures/sim_results.png" alt="Simulation RL results">
         </a>
-        <p class="cap"><strong>RL success rates across simulation tasks.</strong> TMRL achieves near-100% on OGBench tasks and is the only method that achieves non-trivial success on the long-horizon LIBERO-90 task.</p>
+        <p class="cap"><strong>RL success rates across simulation tasks.</strong> TMRL achieves near-100% on both OGBench tasks and outperforms all baselines.</p>
     </div>
 </section>
 
 <div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
 
 <!-- ══════════ REAL WORLD ══════════ -->
+<div class="section-band--dark">
 <section class="page-section" id="sec-real">
+    <div class="result-tag">Real-World Experiments</div>
     <h2 class="section-head">Real-World RL with Context-Smoothed π<sub>0</sub></h2>
 
     <div class="result-callout">
         <div class="big">&lt;&thinsp;1 hr</div>
         <div class="desc">
-            TMRL reaches <strong>near-perfect success</strong> on two real WidowX manipulation tasks in under one hour of interaction, starting from a pre-trained π<sub>0</sub> that often grasps the wrong object.
-            DSRL achieves near-zero success throughout.
+            TMRL reaches <strong>near-perfect success</strong> on three real-robot manipulation tasks — sausage-in-pot and shrimp-in-drawer on WidowX 250, and press-button on Franka Panda — in under one hour of interaction.
+            DSRL achieves near-zero success throughout, unable to reach beyond the base policy's conditional support.
         </div>
     </div>
 
     <video class="static-vid" autoplay loop muted playsinline style="margin-top:0.5rem;">
         <source src="static/videos/csp_vla.mp4" type="video/mp4">
     </video>
-    <p class="cap"><strong>CSP for VLA models.</strong> VLM embedding contexts are corrupted via q<sub>σ</sub>(c̃&thinsp;|&thinsp;c), giving π<sub>0</sub> a tunable spectrum from precise to broad behavior. TMRL trains π<sub>HL</sub> to select σ online.</p>
+    <p class="cap"><strong>CSP applied to VLA models.</strong> VLM embedding contexts are corrupted via q<sub>σ</sub>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;c), giving π<sub>0</sub> a tunable spectrum from precise imitation to broad marginal coverage. TMRL then trains π<sub>HL</sub> to select σ online during RL fine-tuning.</p>
 
     <p class="body-text" style="margin-top:1.25rem;">
         We post-train a context-smoothed <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" style="color:var(--green);">π<sub>0</sub></a> on
@@ -1056,18 +1335,19 @@
         <a href="#" data-lb="static/figures/real_results.png">
             <img src="static/figures/real_results.png" alt="Real-world RL fine-tuning results">
         </a>
-        <p class="cap"><strong>Real-world results.</strong> From a base π<sub>0</sub> that often fails, TMRL post-trains to high success in under one hour. DSRL shows negligible learning—it cannot reach beyond the base policy's conditional support.</p>
+        <p class="cap"><strong>Real-world RL fine-tuning curves.</strong> Starting from a π<sub>0</sub> that frequently fails, TMRL reaches near-perfect success on all three tasks in under one hour. DSRL shows negligible improvement — because it performs RL over the policy's diffusion noise space, it cannot reach beyond the base policy's collapsed conditional support in these novel task contexts.</p>
     </div>
 </section>
+</div><!-- /.section-band--dark -->
 
 <div class="page-section" style="padding-top:0; padding-bottom:0.5rem;"><hr class="rule"></div>
 
 <!-- ══════════ ROLLOUTS ══════════ -->
 <section class="page-section" id="sec-rollouts">
-    <h2 class="section-head">Pre-trained Rollouts &amp; Learning Videos</h2>
+    <h2 class="section-head">Pre-trained Rollouts &amp; RL Learning Curves</h2>
 
     <p class="body-text">
-        Context smoothing broadens π<sub>0</sub>'s pre-trained action support, which TMRL then leverages for faster adaptation.
+        Context smoothing expands π<sub>0</sub>'s pre-trained action support — shown here as side-by-side rollouts of the base π<sub>0</sub> versus the context-smoothed π<sub>0</sub> (CSP). The broader pre-trained support is what TMRL's high-level RL policy exploits during fine-tuning to achieve rapid adaptation. The learning-curve videos show the full RL fine-tuning progression in real time.
     </p>
 
     <div class="rw-tabs" style="margin-top:1rem;">
@@ -1194,6 +1474,40 @@ lbEl.addEventListener('click',function(e){
 });
 document.addEventListener('keydown',function(e){ if(e.key==='Escape') lbClose(); });
 
+// Full video lightbox
+function openVideoLb() {
+    var lb = document.getElementById('video-lb');
+    var v  = document.getElementById('hero-full-video');
+    lb.style.display = 'flex';
+    v.currentTime = 0; v.play().catch(function(){});
+}
+function closeVideoLb() {
+    var lb = document.getElementById('video-lb');
+    var v  = document.getElementById('hero-full-video');
+    lb.style.display = 'none';
+    v.pause(); v.currentTime = 0;
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeVideoLb();
+});
+
+// Teaser figure iframe auto-height (same-origin postMessage + load fallback)
+(function(){
+    var f = document.getElementById('teaser-fig-frame');
+    if (!f) return;
+    window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'figHeight' && e.data.h) {
+            f.style.height = (e.data.h + 4) + 'px';
+        }
+    });
+    f.addEventListener('load', function() {
+        try {
+            var h = f.contentDocument.body.scrollHeight;
+            if (h > 100) f.style.height = (h + 4) + 'px';
+        } catch(e) {}
+    });
+}());
+
 // Page fade-in
 document.addEventListener('DOMContentLoaded',function(){
     requestAnimationFrame(function(){ document.body.classList.add('loaded'); });
@@ -1209,7 +1523,7 @@ document.querySelectorAll('.static-vid').forEach(function(v){
 // Section nav active state + hero compact + crumb
 (function(){
     var nav=document.getElementById('section-nav');
-    var ids=['sec-overview','sec-sweep','sec-motivation','sec-method','sec-sim','sec-real','sec-rollouts','sec-bibtex'];
+    var ids=['sec-teaser','sec-overview','sec-sweep','sec-motivation','sec-method','sec-sim','sec-real','sec-rollouts','sec-bibtex'];
     var links=document.querySelectorAll('#section-nav a');
     var crumb=document.getElementById('nav-crumb');
     var navHero=document.getElementById('nav-hero');
