@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TMRL: Context-Smoothed Pre-training Enables Efficient Policy Fine-tuning</title>
+    <title>TMRL: Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning</title>
     <meta name="description" content="TMRL bridges BC pre-training and RL fine-tuning, enabling real-world reinforcement learning in under one hour.">
 
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500;1,9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -610,6 +610,42 @@
         .cap em { color: var(--ink-soft); font-style: italic; }
 
         /* Pull quote */
+        /* Key-insight callout — used for the single most important paper claim per section */
+        .key-insight {
+            display: block;
+            position: relative;
+            padding: 22px 26px;
+            margin: 22px 0 0;
+            background: linear-gradient(135deg, var(--em-light) 0%, #f4eee0 100%);
+            border: 1.5px solid var(--em);
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(31,122,79,0.10);
+        }
+        .key-insight .ki-label {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--em);
+            background: var(--bg);
+            padding: 3px 10px;
+            border-radius: 999px;
+            border: 1.5px solid var(--em);
+            margin-bottom: 10px;
+        }
+        .key-insight p {
+            font-family: 'Fraunces', serif;
+            font-variation-settings: 'opsz' 36;
+            font-size: 1.12rem;
+            line-height: 1.55;
+            color: var(--ink);
+            margin: 0;
+        }
+        .key-insight strong { color: var(--em-deep); font-weight: 700; }
+        .key-insight em { color: var(--em); font-style: italic; font-weight: 600; }
+
         .pull-quote {
             position: relative;
             border-left: 3px solid var(--em);
@@ -1356,8 +1392,8 @@
 <header class="hero">
     <div class="hero-meta">Robotics: Science and Systems (RSS)&nbsp;2026</div>
 
-    <h1 class="hero-brand">TMRL</h1>
-    <p class="hero-subtitle">Context-Smoothed Pre-training Enables Efficient Policy Fine-tuning</p>
+    <h1 class="hero-brand">TMRL:</h1>
+    <p class="hero-subtitle">Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning</p>
 
     <p class="hero-tagline">
         Real-world reinforcement learning with a VLA &mdash; in under one hour.
@@ -1424,6 +1460,10 @@
         <h2 class="sec-title">Motivation</h2>
         <p class="sec-lead">The need for action distribution interpolation.</p>
     </header>
+
+    <p class="body-text">
+        Robots trained by imitation copy demonstrations narrowly &mdash; they fail in unfamiliar situations, and reinforcement learning can&rsquo;t recover them because the imitation policy starts so confidently wrong that there&rsquo;s no learning signal. <strong>We deliberately blur what the policy &ldquo;knows&rdquo; so RL can find improvements within an hour of real-robot time.</strong>
+    </p>
 
     <p class="body-text">
         On a 2D pointmaze from <a href="https://github.com/seohongpark/ogbench" target="_blank">OGBench</a>, we train two policies &mdash; one approximating the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), the other the marginal <em>p</em>(<i>a</i>) &mdash; where <i>c</i> is the goal position. Both train on <code>pointmaze-large</code> and evaluate on the larger, out-of-distribution <code>pointmaze-giant</code> with an unseen goal (<strong style="color:#c08800;">agent in yellow</strong>, <strong style="color:#c44b66;">goal in pink</strong>).
@@ -1557,7 +1597,10 @@
         </div>
     </div>
 
-    <p class="cap"><strong>Action diversity grows with &sigma;</strong> while coherence is preserved &mdash; the perturbation lives in <em>context</em> space, not action space.</p>
+    <aside class="key-insight">
+        <span class="ki-label">Key insight</span>
+        <p>The perturbation lives in <strong>context space, not action space.</strong> Action diversity grows with &sigma; while individual chunks stay coherent &mdash; CSP <em>borrows</em> action sequences from nearby contexts rather than jittering the current one.</p>
+    </aside>
 </section>
 
 <!-- ════════════════ SIMULATION ════════════════ -->
@@ -1715,7 +1758,7 @@
     <div class="bibtex-wrap">
         <button class="bibtex-copy" id="bibtex-copy" type="button">Copy</button>
         <pre class="bibtex-box" id="bibtex-text">@inproceedings{hong2026tmrl,
-    title  = {TMRL: Context-Smoothed Pre-training Enables Efficient Policy Fine-tuning},
+    title  = {TMRL: Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning},
     author = {Hong, Matthew M. and Zhang, Jesse and Nagabandi, Anusha and Gupta, Abhishek},
     booktitle = {Robotics: Science and Systems (RSS)},
     year   = {2026}
