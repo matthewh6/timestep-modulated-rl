@@ -332,6 +332,17 @@
             color: var(--ink-muted); font-size: 0.78rem;
         }
 
+        /* Venue line — plain bold text under affiliations, above video */
+        .hero-venue {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 14px 0 16px;
+            letter-spacing: 0.02em;
+        }
+
         /* Teaser video: cap height so video fully visible on landing */
         .teaser-polaroid { margin: 14px 0 12px; }
         .teaser-polaroid > video {
@@ -1282,8 +1293,6 @@
 
 <!-- ════════════════ HERO ════════════════ -->
 <header class="hero">
-    <div class="hero-meta">Robotics: Science and Systems (RSS)&nbsp;2026</div>
-
     <h1 class="hero-brand">TMRL</h1>
     <p class="hero-subtitle">Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning</p>
 
@@ -1298,6 +1307,8 @@
         <a href="https://abhishekunique.github.io/" target="_blank">Abhishek Gupta</a><sup>1</sup>
         <span class="affil"><sup>1</sup>University of Washington&nbsp;&nbsp;&nbsp;&nbsp;<sup>2</sup>Amazon FAR</span>
     </div>
+
+    <div class="hero-venue">Robotics: Science and Systems (RSS)&nbsp;2026</div>
 
     <!-- TEASER POLAROID -->
     <figure class="polaroid teaser-polaroid">
