@@ -6,62 +6,64 @@
     <title>TMRL: Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning</title>
     <meta name="description" content="TMRL bridges BC pre-training and RL fine-tuning, enabling real-world reinforcement learning in under one hour.">
 
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500;1,9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500;1,9..144,700;1,9..144,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
 
     <style>
         :root {
-            /* paper */
-            --bg: #fdfaf4;
-            --bg-warm: #f6efde;
-            --bg-deep: #ece4d0;
-            --paper-grain-opacity: 0.05;
+            /* concrete (warm grey-beige base) */
+            --bg: #ebe8e0;
+            --panel: #f5f3ec;
+            --panel-tint: #e3dfd2;
+            --bg-deep: #d9d4c3;
 
-            /* ink */
-            --ink: #15211b;
-            --ink-soft: #3d4a44;
-            --ink-muted: #71776e;
+            /* charcoal ink (warm-leaning, not pure black) */
+            --ink: #1c1c19;
+            --ink-soft: #383832;
+            --ink-muted: #7a7872;
 
-            /* emerald (CSP / TMRL — your method.png signature) */
-            --em-deep: #194f37;
-            --em: #1f7a4f;
-            --em-mid: #2d9e66;
-            --em-glow: #5dcfa8;
-            --em-light: #e8f2ec;
+            /* deep garden green */
+            --em-deep: #1d4530;
+            --em: #2a5d40;
+            --em-mid: #4a8068;
+            --em-glow: #8db59b;
+            --em-light: #d8e3dc;
 
-            /* amber (the warm marginal end of σ) */
-            --amber: #d4940a;
-            --amber-soft: #f0a060;
-            --amber-light: #fbecc4;
+            /* walnut wood accent (used sparingly) */
+            --walnut: #6b4a30;
+            --walnut-soft: #8a6a4a;
+            --walnut-light: #e8dec8;
 
-            /* plot-marker palette (pulled from your figures) */
-            --olive: #a89f4d;
-            --periwinkle: #9da8e0;
-            --coral: #e87a8c;
-            --postbc: #a89f4d;
+            /* aged bronze (replaces honey amber) */
+            --amber: #a67a3a;
+            --amber-soft: #c79a5a;
+            --amber-light: #ecddc0;
+
+            /* plot palette */
+            --olive: #8a7e3e;
+            --periwinkle: #6e7ec7;
+            --coral: #c87a78;
 
             /* rules */
-            --rule: #15211b;
-            --rule-soft: #cdc4ad;
+            --rule: #1c1c19;
+            --rule-soft: #c8c2b0;
+            --rule-faint: #ddd9cc;
 
-            /* shadows */
-            --sh-paper: 0 8px 24px rgba(20, 24, 18, 0.10);
-            --sh-card: 0 12px 30px rgba(20, 32, 24, 0.18);
-            --sh-card-deep: 0 18px 44px rgba(20, 32, 24, 0.28);
-            --sh-soft: 0 3px 10px rgba(20, 24, 18, 0.08);
+            /* shadows — like cantilevered planes on concrete */
+            --sh-soft: 0 2px 8px rgba(28, 28, 25, 0.06);
+            --sh-card: 0 6px 18px rgba(28, 28, 25, 0.10);
+            --sh-card-deep: 0 18px 38px rgba(28, 28, 25, 0.16);
+            --sh-emerald: 0 8px 26px rgba(29, 69, 48, 0.22);
 
-            /* sigma spine height */
             --spine-h: 60px;
         }
 
         *, *::before, *::after { box-sizing: border-box; }
-
         html { background: var(--bg); margin: 0; padding: 0; }
-
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Fraunces', Georgia, serif;
             font-optical-sizing: auto;
             font-variation-settings: 'opsz' 14;
@@ -69,478 +71,350 @@
             color: var(--ink);
             line-height: 1.66;
             font-size: 17px;
-            opacity: 0;
-            transition: opacity 0.45s ease;
             -webkit-font-smoothing: antialiased;
+            opacity: 0;
+            transition: opacity 0.45s;
             position: relative;
         }
         body.loaded { opacity: 1; }
 
-        /* Faint paper grain over everything */
+        /* faint concrete grain — subtle */
         body::before {
             content: "";
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             pointer-events: none;
             z-index: 1;
-            opacity: var(--paper-grain-opacity);
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.13  0 0 0 0 0.10  0 0 0 0.6 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+            opacity: 0.045;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.10  0 0 0 0 0.09  0 0 0 0.6 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
             mix-blend-mode: multiply;
         }
-
         ::selection { background: var(--em-glow); color: var(--ink); }
 
-        /* ════════════════════════════════════════════════════════
-           σ-SPINE  (sticky top nav: page-as-σ-axis)
-           ════════════════════════════════════════════════════════ */
+        /* ════════════════ σ-SPINE (architectural ledge) ════════════════ */
         .sigma-spine {
             position: sticky;
             top: 0;
             z-index: 200;
-            background: rgba(253, 250, 244, 0.96);
+            background: rgba(235, 232, 224, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-bottom: 1.5px solid var(--rule);
             height: var(--spine-h);
         }
         .spine-inner {
-            display: flex;
-            align-items: center;
-            gap: 18px;
+            display: flex; align-items: center; gap: 18px;
             height: 100%;
             max-width: 1100px;
             margin: 0 auto;
-            padding: 0 22px;
+            padding: 0 32px;
         }
+        @media (max-width: 640px) { .spine-inner { padding: 0 20px; } }
         .spine-brand {
-            display: flex;
-            align-items: baseline;
-            gap: 6px;
+            display: flex; align-items: baseline; gap: 8px;
             flex-shrink: 0;
-            transition: opacity 0.18s ease;
+            transition: opacity 0.18s;
         }
         .spine-brand:hover { opacity: 0.7; }
         .spine-brand .brand-mark {
             font-family: 'Fraunces', Georgia, serif;
-            font-variation-settings: 'opsz' 60;
+            font-variation-settings: 'opsz' 18;
             font-weight: 600;
-            font-size: 1.10rem;
+            font-size: 0.92rem;
             color: var(--ink);
-            letter-spacing: -0.025em;
-        }
-        .spine-brand .brand-glyph {
-            font-family: 'Fraunces', serif;
-            font-style: italic;
-            font-weight: 400;
-            font-size: 1.08rem;
-            color: var(--em);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
             line-height: 1;
-            transform: translateY(0);
         }
-
-        .spine-track {
-            position: relative;
-            flex: 1;
-            height: 32px;
-            min-width: 0;
-        }
+        .spine-brand:hover .brand-mark { color: var(--em); }
+        .spine-track { position: relative; flex: 1; height: 32px; min-width: 0; }
         .spine-bar {
-            position: absolute;
-            left: 0; right: 0;
-            top: 50%;
-            height: 2px;
+            position: absolute; left: 0; right: 0; top: 50%;
+            height: 1px;
             transform: translateY(-50%);
             background: linear-gradient(90deg,
                 var(--em) 0%,
-                var(--em-mid) 28%,
-                #c9a73b 62%,
+                var(--em-mid) 30%,
+                var(--walnut-soft) 60%,
                 var(--amber) 100%);
-            border-radius: 2px;
         }
         .spine-cursor {
-            position: absolute;
-            top: 50%;
-            left: 0%;
-            width: 14px;
-            height: 14px;
+            position: absolute; top: 50%; left: 0;
+            width: 12px; height: 12px;
             border-radius: 50%;
             background: var(--em);
             border: 2px solid var(--bg);
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 0 2px var(--em), 0 2px 6px rgba(20,32,24,0.25);
+            box-shadow: 0 0 0 1.5px var(--em);
             transition: left 0.22s cubic-bezier(.16,.7,.3,1);
             z-index: 3;
             pointer-events: none;
         }
         .spine-stop {
-            position: absolute;
-            left: var(--p);
-            top: 50%;
+            position: absolute; left: var(--p); top: 50%;
             transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            text-decoration: none;
-            color: var(--ink-muted);
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.66rem;
-            font-weight: 500;
-            letter-spacing: 0.04em;
+            font-size: 0.62rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--ink-muted);
+            text-decoration: none;
             white-space: nowrap;
             cursor: pointer;
             z-index: 2;
         }
         .spine-stop .dot {
-            width: 9px;
-            height: 9px;
+            width: 8px; height: 8px;
             border-radius: 50%;
             background: var(--bg);
             border: 1.5px solid var(--ink-muted);
-            transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
         }
         .spine-stop .lbl {
             position: absolute;
-            top: 16px;
+            top: 14px;
             opacity: 0;
             transform: translateY(-2px);
-            transition: opacity 0.18s ease, transform 0.18s ease;
+            transition: opacity 0.2s, transform 0.2s;
             background: var(--ink);
             color: var(--bg);
-            padding: 2px 7px;
-            border-radius: 4px;
+            padding: 3px 8px;
             pointer-events: none;
         }
         .spine-stop:hover .lbl,
-        .spine-stop.active .lbl {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .spine-stop:hover .dot {
-            transform: scale(1.25);
-            border-color: var(--em);
-        }
-        .spine-stop.passed .dot {
-            background: var(--amber);
-            border-color: var(--amber);
-        }
+        .spine-stop.active .lbl { opacity: 1; transform: translateY(0); }
+        .spine-stop:hover .dot { transform: scale(1.3); border-color: var(--em); }
+        .spine-stop.passed .dot { background: var(--walnut); border-color: var(--walnut); }
         .spine-stop.active .dot {
             background: var(--em);
             border-color: var(--em);
-            transform: scale(1.18);
+            transform: scale(1.4);
             animation: spinePulse 2.4s ease-in-out infinite;
         }
         @keyframes spinePulse {
-            0%, 100% { box-shadow: 0 0 0 3px rgba(31,122,79,0.18); }
-            50%      { box-shadow: 0 0 0 7px rgba(31,122,79,0.05); }
+            0%, 100% { box-shadow: 0 0 0 2px rgba(42, 93, 64, 0.22); }
+            50%      { box-shadow: 0 0 0 6px rgba(42, 93, 64, 0.0); }
         }
-
-        .spine-actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-        }
+        .spine-actions { display: flex; gap: 8px; flex-shrink: 0; }
         .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            display: inline-flex; align-items: center; gap: 5px;
             padding: 4px 10px;
             border: 1.5px solid var(--rule);
-            border-radius: 999px;
             background: var(--bg);
             color: var(--ink);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            font-weight: 500;
+            font-size: 0.66rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
             text-decoration: none;
             opacity: 0.55;
             cursor: default;
+            border-radius: 999px;
         }
-        .chip.live {
-            opacity: 1;
-            cursor: pointer;
-            transition: background 0.18s, color 0.18s;
-        }
-        .chip.live:hover { background: var(--ink); color: var(--bg); }
-
         @media (max-width: 760px) {
             .spine-stop .lbl { display: none; }
             .spine-actions { display: none; }
             :root { --spine-h: 52px; }
         }
 
-        /* ════════════════════════════════════════════════════════
-           PAPER  (main content column)
-           ════════════════════════════════════════════════════════ */
+        /* ════════════════ PAPER ════════════════ */
         .paper {
-            max-width: 980px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 0 26px;
+            padding: 0 32px;
             position: relative;
             z-index: 2;
         }
-        @media (max-width: 640px) { .paper { padding: 0 18px; } }
+        @media (max-width: 640px) { .paper { padding: 0 20px; } }
 
-        /* ════════════════════════════════════════════════════════
-           HERO
-           ════════════════════════════════════════════════════════ */
-        .hero {
-            padding: 38px 0 12px;
-        }
+        /* ════════════════ HERO ════════════════ */
+        .hero { padding: 32px 0 16px; max-width: 980px; position: relative; }
         .hero-meta {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            font-weight: 500;
-            letter-spacing: 0.05em;
+            font-size: 0.74rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: var(--em);
+            color: var(--walnut);
             margin-bottom: 16px;
+            display: block;
         }
-        .hero-meta .dot-sep {
-            display: inline-block;
-            margin: 0 10px;
-            color: var(--rule-soft);
-        }
-        /* Title: TMRL brand → uses the same Fraunces family as the paper-title subtitle */
+        .hero-meta .dot-sep { color: var(--rule-soft); margin: 0 6px; }
         .hero-brand {
             font-family: 'Fraunces', Georgia, serif;
             font-variation-settings: 'opsz' 144;
             font-weight: 700;
-            font-size: clamp(3.4rem, 9vw, 6rem);
-            line-height: 1;
-            letter-spacing: -0.04em;
-            margin: 0 0 18px;
+            font-size: clamp(2.8rem, 7.4vw, 5rem);
+            line-height: 0.95;
+            letter-spacing: -0.045em;
+            margin: 0 0 14px;
             color: var(--ink);
-        }
-        .hero-brand .sigma {
-            font-family: 'Fraunces', serif;
-            font-style: italic;
-            font-weight: 500;
-            color: var(--em);
-            letter-spacing: 0;
-            margin-left: 0.16em;
-            font-size: 0.7em;
-            vertical-align: 0.06em;
         }
         .hero-subtitle {
             font-family: 'Fraunces', serif;
             font-variation-settings: 'opsz' 60;
-            font-weight: 500;
-            font-size: clamp(1rem, 2.05vw, 1.5rem);
-            line-height: 1.18;
-            letter-spacing: -0.018em;
+            font-weight: 600;
+            font-size: clamp(1rem, 1.85vw, 1.4rem);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
             color: var(--ink);
-            margin: 0 0 24px;
+            margin: 0 0 16px;
             max-width: none;
             white-space: nowrap;
         }
         @media (max-width: 900px) {
-            .hero-subtitle { white-space: normal; font-size: clamp(1.15rem, 3vw, 1.5rem); max-width: 880px; }
+            .hero-subtitle { white-space: normal; font-size: clamp(1.05rem, 3vw, 1.4rem); max-width: 880px; }
         }
         .hero-tagline {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            max-width: 260px;
+            padding: 11px 18px 12px;
+            background: var(--panel);
+            border: 1px solid var(--rule-soft);
+            border-left: 3px solid var(--em);
+            box-shadow: var(--sh-soft);
+            border-radius: 0 8px 8px 0;
             font-family: 'Fraunces', serif;
             font-variation-settings: 'opsz' 36;
             font-style: italic;
-            font-weight: 400;
-            font-size: clamp(1.05rem, 2vw, 1.32rem);
-            line-height: 1.42;
-            color: var(--ink-soft);
-            margin: 0 0 24px;
-            max-width: 760px;
+            font-weight: 500;
+            font-size: 0.96rem;
+            line-height: 1.4;
+            color: var(--ink);
+            margin: 0;
+            z-index: 5;
         }
-        .hero-tagline em {
-            color: var(--em);
-            font-style: italic;
-            font-weight: 600;
+        @media (max-width: 920px) {
+            .hero-tagline {
+                position: static;
+                max-width: 760px;
+                margin: 4px 0 16px;
+                font-size: clamp(0.95rem, 1.65vw, 1.12rem);
+            }
         }
+        .hero-tagline::before {
+            content: "note";
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            background: var(--bg);
+            padding: 0 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-style: normal;
+            font-weight: 700;
+            font-size: 0.62rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--walnut);
+        }
+        .hero-tagline em { color: var(--em); font-style: italic; font-weight: 700; }
         .hero-authors {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             color: var(--ink-soft);
-            line-height: 1.85;
-            margin-bottom: 26px;
+            line-height: 1.7;
+            margin: 0 0 4px;
         }
         .hero-authors a {
             color: inherit;
             text-decoration: none;
             border-bottom: 1px dotted transparent;
-            transition: color 0.2s, border-color 0.2s;
+            transition: color 0.18s, border-color 0.18s;
         }
         .hero-authors a:hover { color: var(--em); border-bottom-color: var(--em); }
         .hero-authors sup { font-size: 0.7em; color: var(--ink-muted); }
         .hero-authors .affil {
-            display: block;
-            margin-top: 4px;
-            color: var(--ink-muted);
-            font-size: 0.78rem;
+            display: block; margin-top: 4px;
+            color: var(--ink-muted); font-size: 0.78rem;
         }
 
-        /* Hero quick links */
+        /* Teaser video: cap height so video fully visible on landing */
+        .teaser-polaroid { margin: 14px 0 12px; }
+        .teaser-polaroid > video {
+            width: auto;
+            max-width: 100%;
+            max-height: calc(100vh - 340px);
+            min-height: 280px;
+            margin: 0 auto;
+            display: block;
+        }
+        @media (max-width: 760px) {
+            .teaser-polaroid > video { max-height: calc(100vh - 300px); }
+        }
+
+        /* HERO QUICK LINKS — square-edged, like building signage */
         .hero-quick-links {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin: 22px 0 0;
+            display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+            margin: 32px 0 0;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
+            font-size: 0.78rem;
         }
         .hero-quick-links .qlink {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 18px;
             border: 1.5px solid var(--rule);
-            border-radius: 999px;
             color: var(--ink);
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            border-radius: 999px;
             transition: background 0.18s, color 0.18s, border-color 0.18s;
         }
-        .hero-quick-links .qlink:hover {
-            background: var(--ink);
-            color: var(--bg);
-            border-color: var(--ink);
-        }
-        .hero-quick-links .qlink.primary {
-            background: var(--em);
-            color: #fff;
-            border-color: var(--em);
-        }
-        .hero-quick-links .qlink.primary:hover {
-            background: var(--em-deep);
-            border-color: var(--em-deep);
-        }
+        .hero-quick-links .qlink:hover { background: var(--ink); color: var(--bg); }
+        .hero-quick-links .qlink.primary { background: var(--em); color: #fff; border-color: var(--em); }
+        .hero-quick-links .qlink.primary:hover { background: var(--em-deep); border-color: var(--em-deep); }
         .hero-quick-links .qlink-aside {
             color: var(--ink-muted);
-            font-size: 0.76rem;
+            font-size: 0.72rem;
             margin-left: auto;
             font-style: italic;
+            font-family: 'Fraunces', serif;
         }
         @media (max-width: 540px) {
             .hero-quick-links .qlink-aside { margin-left: 0; width: 100%; }
         }
 
-        /* ════════════════════════════════════════════════════════
-           FIGURE  (image / video, soft shadow only — no matte/border)
-           ════════════════════════════════════════════════════════ */
-        .polaroid {
-            display: block;
-            margin: 24px auto;
-            background: transparent;
-            border: none;
-            border-radius: 0;
-            padding: 0;
-            transition: transform 0.32s ease;
-            position: relative;
+        /* ════════════════ SECTION HEADER (architectural detail) ════════════════ */
+        .page-section {
+            padding: 80px 0 8px;
+            scroll-margin-top: calc(var(--spine-h) + 8px);
         }
-        .polaroid:hover { transform: translateY(-2px); }
+        .page-section:first-of-type { padding-top: 48px; }
 
-        .polaroid > a {
-            display: block;
-            text-decoration: none;
-            border-radius: 14px;
-            overflow: hidden;
-            background: #ffffff;
-            padding: 22px;
-            box-shadow: 0 6px 22px rgba(20, 32, 24, 0.10);
-            transition: box-shadow 0.32s ease;
-            box-sizing: border-box;
-        }
-        .polaroid:hover > a { box-shadow: 0 14px 36px rgba(20, 32, 24, 0.16); }
-        .polaroid > a img,
-        .polaroid > a video {
-            width: 100%;
-            display: block;
-            border-radius: 0;
-        }
-
-        /* direct image: same white inset frame */
-        .polaroid > img {
-            width: 100%;
-            display: block;
-            background: #ffffff;
-            padding: 22px;
-            border-radius: 14px;
-            box-shadow: 0 6px 22px rgba(20, 32, 24, 0.10);
-            transition: box-shadow 0.32s ease;
-            box-sizing: border-box;
-        }
-
-        /* flush variant: image goes directly with rounded corners + soft shadow, no white inset panel */
-        .polaroid.flush > a {
-            background: transparent;
-            padding: 0;
-            box-shadow: none;
-        }
-        .polaroid.flush:hover > a { box-shadow: none; }
-        .polaroid.flush > a img {
-            border-radius: 14px;
-            box-shadow: 0 6px 22px rgba(20, 32, 24, 0.10);
-            transition: box-shadow 0.32s ease;
-        }
-        .polaroid.flush:hover > a img { box-shadow: 0 14px 36px rgba(20, 32, 24, 0.16); }
-
-        /* direct video: dark content, no white padding (looks weird with letterboxing) */
-        .polaroid > video {
-            width: 100%;
-            display: block;
-            border-radius: 14px;
-            background: #000;
-            box-shadow: 0 6px 22px rgba(20, 32, 24, 0.10);
-            transition: box-shadow 0.32s ease;
-        }
-        .polaroid:hover > video,
-        .polaroid:hover > img { box-shadow: 0 14px 36px rgba(20, 32, 24, 0.16); }
-
-        .polaroid figcaption {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--ink-muted);
-            text-align: center;
-            margin: 14px auto 0;
-            line-height: 1.62;
-            padding: 0 12px;
-            max-width: 760px;
-        }
-        .polaroid figcaption strong { color: var(--ink); font-weight: 700; }
-        .polaroid figcaption em { color: var(--ink-soft); font-style: italic; }
-
-        .polaroid.wide-polaroid:hover { transform: translateY(-2px); }
-
-        /* polaroid row */
-        .polaroid-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-            margin: 22px 0 8px;
-        }
-        @media (max-width: 720px) { .polaroid-row { grid-template-columns: 1fr; } }
-
-        /* ════════════════════════════════════════════════════════
-           SECTION HEADER  (σ-rule + Fraunces title + italic lead)
-           ════════════════════════════════════════════════════════ */
-        .page-section { padding: 64px 0 8px; scroll-margin-top: calc(var(--spine-h) + 8px); }
-        .page-section:first-of-type { padding-top: 36px; }
-
-        .sec-head { margin-bottom: 24px; }
+        .sec-head { margin-bottom: 28px; }
+        /* Architectural marker: small green block + thin charcoal beam */
         .sigma-rule {
-            display: block;
-            height: 3px;
-            border-radius: 2px;
-            background: linear-gradient(90deg, var(--em) 0%, var(--em-mid) 28%, #c9a73b 62%, var(--amber) 100%);
-            margin-bottom: 18px;
-            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .sigma-rule::before {
+            content: "";
+            width: 10px; height: 10px;
+            background: var(--em);
+            flex-shrink: 0;
+        }
+        .sigma-rule::after {
+            content: "";
+            flex: 1; height: 1.5px;
+            background: var(--ink);
         }
         .sec-title {
             font-family: 'Fraunces', serif;
             font-variation-settings: 'opsz' 84;
-            font-weight: 600;
-            font-size: clamp(2.1rem, 4.6vw, 3.2rem);
-            line-height: 1.04;
-            letter-spacing: -0.022em;
+            font-weight: 700;
+            font-size: clamp(2.2rem, 4.8vw, 3.4rem);
+            line-height: 1.05;
+            letter-spacing: -0.025em;
             color: var(--ink);
-            margin: 0 0 12px;
+            margin: 0 0 14px;
         }
         .sec-lead {
             font-family: 'Fraunces', serif;
@@ -553,7 +427,6 @@
             max-width: 800px;
             line-height: 1.4;
         }
-        /* TL;DR lead: must fit on one line on desktop */
         .sec-lead.tldr-lead {
             max-width: none;
             white-space: nowrap;
@@ -563,22 +436,21 @@
         @media (max-width: 900px) {
             .sec-lead.tldr-lead { white-space: normal; font-size: 1rem; }
         }
+        .sec-num, .spec-rule { display: none; }
 
         .sub-head {
             font-family: 'Fraunces', serif;
-            font-weight: 600;
-            font-size: 1.2rem;
+            font-weight: 700;
+            font-size: 1.22rem;
             color: var(--ink);
-            margin: 32px 0 12px;
-            padding: 2px 0 2px 14px;
+            margin: 36px 0 14px;
+            padding: 4px 0 4px 14px;
             border-left: 3px solid var(--em);
             letter-spacing: -0.005em;
             line-height: 1.3;
         }
 
-        /* ════════════════════════════════════════════════════════
-           BODY TEXT
-           ════════════════════════════════════════════════════════ */
+        /* ════════════════ BODY ════════════════ */
         .body-text {
             font-family: 'Fraunces', serif;
             font-variation-settings: 'opsz' 14;
@@ -609,107 +481,167 @@
         .cap strong { color: var(--ink); font-weight: 700; }
         .cap em { color: var(--ink-soft); font-style: italic; }
 
-        /* Pull quote */
-        /* Key-insight callout — used for the single most important paper claim per section */
-        .key-insight {
-            display: block;
-            position: relative;
-            padding: 22px 26px;
-            margin: 22px 0 0;
-            background: linear-gradient(135deg, var(--em-light) 0%, #f4eee0 100%);
-            border: 1.5px solid var(--em);
-            border-radius: 14px;
-            box-shadow: 0 6px 18px rgba(31,122,79,0.10);
-        }
-        .key-insight .ki-label {
-            display: inline-block;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--em);
-            background: var(--bg);
-            padding: 3px 10px;
-            border-radius: 999px;
-            border: 1.5px solid var(--em);
-            margin-bottom: 10px;
-        }
-        .key-insight p {
-            font-family: 'Fraunces', serif;
-            font-variation-settings: 'opsz' 36;
-            font-size: 1.12rem;
-            line-height: 1.55;
-            color: var(--ink);
-            margin: 0;
-        }
-        .key-insight strong { color: var(--em-deep); font-weight: 700; }
-        .key-insight em { color: var(--em); font-style: italic; font-weight: 600; }
-
+        /* PULL QUOTE */
         .pull-quote {
             position: relative;
             border-left: 3px solid var(--em);
-            padding: 6px 0 6px 18px;
-            margin: 26px 0;
+            padding: 6px 0 6px 22px;
+            margin: 28px 0 0;
             font-family: 'Fraunces', serif;
             font-variation-settings: 'opsz' 36;
-            font-size: 1.18rem;
+            font-size: 1.2rem;
             font-style: italic;
             color: var(--em-deep);
             line-height: 1.55;
-            background: linear-gradient(90deg, var(--em-light) 0%, transparent 92%);
-            border-radius: 0 10px 10px 0;
+            background: linear-gradient(90deg, rgba(216, 227, 220, 0.55) 0%, transparent 92%);
+            border-radius: 14px;
         }
-        .pull-quote em { color: var(--em); font-weight: 500; }
+        .pull-quote em { color: var(--em); font-weight: 600; }
 
-        /* prompt header inside an emerald card (e.g. qualitative animation) */
-        .card-instruction {
-            text-align: center;
-            font-family: 'Fraunces', serif;
-            font-variation-settings: 'opsz' 36;
-            font-style: italic;
-            font-weight: 400;
-            font-size: 1.18rem;
-            color: var(--em-glow);
-            margin: 0 0 18px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid rgba(234, 243, 236, 0.10);
-            line-height: 1.4;
+        /* ════════════════ FIGURES (floating concrete planes) ════════════════ */
+        .polaroid {
+            display: block;
+            margin: 24px 0;
+            background: transparent;
+            border: none;
+            border-radius: 14px;
+            padding: 0;
+            transition: transform 0.32s ease;
+            position: relative;
+        }
+        .polaroid:hover { transform: translateY(-2px); }
+
+        .polaroid > a {
+            display: block;
+            text-decoration: none;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 24px;
+            border: none;
+            box-shadow: var(--sh-card);
+            transition: box-shadow 0.32s ease;
+            box-sizing: border-box;
+        }
+        .polaroid:hover > a { box-shadow: var(--sh-card-deep); }
+        .polaroid > a img,
+        .polaroid > a video {
+            width: 100%;
+            display: block;
+            border-radius: 14px;
         }
 
-        /* ════════════════════════════════════════════════════════
-           EMERALD CARD  (signature: deep-green panel from method.png)
-           ════════════════════════════════════════════════════════ */
+        .polaroid > img {
+            width: 100%;
+            display: block;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 14px;
+            border: none;
+            box-shadow: var(--sh-card);
+            transition: box-shadow 0.32s ease;
+            box-sizing: border-box;
+        }
+        .polaroid > video {
+            width: 100%;
+            display: block;
+            border-radius: 14px;
+            background: #000;
+            border: none;
+            box-shadow: var(--sh-card);
+            transition: box-shadow 0.32s ease;
+        }
+        .polaroid:hover > video,
+        .polaroid:hover > img { box-shadow: var(--sh-card-deep); }
+
+        /* flush variant: bare image, no white inset */
+        .polaroid.flush > a {
+            background: transparent;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+        }
+        .polaroid.flush > a img {
+            border: none;
+            box-shadow: var(--sh-card);
+            transition: box-shadow 0.32s;
+        }
+        .polaroid.flush:hover > a img { box-shadow: var(--sh-card-deep); }
+
+        .polaroid figcaption {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--ink-muted);
+            text-align: left;
+            margin: 14px auto 0;
+            line-height: 1.65;
+            padding: 0;
+            max-width: 760px;
+            letter-spacing: 0.02em;
+        }
+        .polaroid figcaption strong { color: var(--ink); font-weight: 700; }
+        .polaroid figcaption em { color: var(--ink-soft); font-style: italic; }
+
+        .polaroid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin: 24px 0 8px;
+        }
+        @media (max-width: 720px) { .polaroid-row { grid-template-columns: 1fr; } }
+
+        /* ════════════════ EMERALD CARD (garden-view focal panel) ════════════════ */
         .emerald-card {
             position: relative;
-            background:
-                linear-gradient(160deg, var(--em-deep) 0%, #0f3a26 100%);
-            color: #eaf3ec;
-            border: 1.5px solid var(--rule);
+            background: linear-gradient(170deg, var(--em-deep) 0%, #143425 100%);
+            color: #e3ece6;
+            border: 1px solid var(--rule);
+            border-top: 2px solid var(--walnut-soft);
             border-radius: 16px;
-            padding: 24px 24px 22px;
-            box-shadow: var(--sh-card);
+            padding: 26px 28px;
+            box-shadow: var(--sh-emerald);
             transition: transform 0.28s cubic-bezier(.16,.7,.3,1), box-shadow 0.28s;
             overflow: hidden;
         }
         .emerald-card::before {
             content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(ellipse 70% 50% at 100% 0%, rgba(93, 207, 168, 0.16) 0%, transparent 60%);
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse 80% 50% at 100% 0%, rgba(141, 181, 155, 0.16) 0%, transparent 60%);
             pointer-events: none;
         }
         .emerald-card:hover {
             transform: translateY(-3px);
-            box-shadow: var(--sh-card-deep);
+            box-shadow: 0 22px 48px rgba(29, 69, 48, 0.32);
         }
         .emerald-card > * { position: relative; z-index: 1; }
 
+        /* LIGHT PANEL CARD (concrete + green left rule) — used for TL;DR + Method pillars */
+        .panel-card {
+            position: relative;
+            background: var(--panel);
+            color: var(--ink);
+            border: 1px solid var(--rule-soft);
+            border-left: 3px solid var(--em);
+            border-radius: 14px;
+            padding: 24px 28px;
+            box-shadow: var(--sh-card);
+            transition: transform 0.28s, box-shadow 0.28s, border-color 0.28s;
+            overflow: hidden;
+        }
+        .panel-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--sh-card-deep);
+            border-color: var(--em);
+        }
+        .panel-card .card-tag { color: var(--em); }
+        .panel-card .card-title { color: var(--ink); }
+        .panel-card p { color: var(--ink-soft); }
+        .panel-card p strong { color: var(--ink); }
+        .panel-card .card-icon { color: var(--em); opacity: 0.5; }
+
         .card-icon {
             position: absolute;
-            top: 16px;
-            right: 20px;
+            top: 18px;
+            right: 22px;
             font-size: 1.6rem;
             color: var(--em-glow);
             opacity: 0.6;
@@ -719,16 +651,16 @@
         }
         .card-tag {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 700;
-            letter-spacing: 0.14em;
+            letter-spacing: 0.16em;
             text-transform: uppercase;
             color: var(--em-glow);
             margin: 0 0 10px;
         }
         .card-title {
             font-family: 'Fraunces', serif;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 1.22rem;
             line-height: 1.25;
             margin: 0 0 10px;
@@ -739,69 +671,53 @@
             font-family: 'Fraunces', serif;
             font-size: 0.97rem;
             line-height: 1.66;
-            color: rgba(234, 243, 236, 0.92);
+            color: rgba(227, 236, 230, 0.92);
             margin: 0;
         }
         .emerald-card p strong { color: #fff; font-weight: 700; }
         .emerald-card p em { color: var(--em-glow); font-style: italic; }
-        .emerald-card a {
-            color: var(--em-glow);
-            text-decoration: none;
-            border-bottom: 1px dotted var(--em-glow);
-        }
+        .emerald-card a { color: var(--em-glow); text-decoration: none; border-bottom: 1px dotted var(--em-glow); }
         .emerald-card code {
             background: rgba(255,255,255,0.10);
             color: #d8eee0;
             padding: 0.05em 0.4em;
-            border-radius: 4px;
+            border-radius: 14px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.86em;
             border: 1px solid rgba(255,255,255,0.08);
         }
 
-        /* card grids */
-        .card-grid { display: grid; gap: 16px; margin: 18px 0; }
+        .card-grid { display: grid; gap: 18px; margin: 18px 0; }
         .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
         .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
         @media (max-width: 760px) {
             .card-grid-3, .card-grid-2 { grid-template-columns: 1fr; }
         }
 
-        /* result callout — use accent gradient */
-        .result-callout-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin: 20px 0;
-        }
+        /* RESULT CALLOUT (concrete plane with wood accent) */
+        .result-callout-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 22px 0; }
         @media (max-width: 600px) { .result-callout-row { grid-template-columns: 1fr; } }
         .result-callout {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            padding: 18px 22px;
-            background: var(--bg-warm);
-            border: 1.5px solid var(--rule);
-            border-radius: 14px;
+            display: flex; align-items: center; gap: 22px;
+            padding: 22px 28px;
+            background: var(--panel);
+            border: 1px solid var(--rule-soft);
+            border-left: 3px solid var(--em);
             position: relative;
+            box-shadow: var(--sh-card);
+            border-radius: 14px;
             overflow: hidden;
         }
-        .result-callout::before {
-            content: "";
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 4px;
-            background: linear-gradient(180deg, var(--em), var(--amber));
-        }
+        .result-callout::before { display: none; }
         .result-callout .big {
             font-family: 'Fraunces', serif;
-            font-variation-settings: 'opsz' 84;
-            font-size: 2.4rem;
+            font-variation-settings: 'opsz' 144;
+            font-size: 2.8rem;
             font-weight: 700;
             color: var(--em);
             line-height: 1;
             white-space: nowrap;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
         }
         .result-callout .desc {
             font-family: 'Fraunces', serif;
@@ -812,55 +728,66 @@
             min-width: 200px;
         }
         .result-callout .desc strong { color: var(--ink); }
-        .result-callout.xl-callout { padding: 22px 26px; }
-        .result-callout.xl-callout .big { font-size: 3rem; color: var(--em); }
+        .result-callout.xl-callout { padding: 26px 30px; }
+        .result-callout.xl-callout .big { font-size: 3.4rem; }
 
-        /* ════════════════════════════════════════════════════════
-           σ-SLIDER section (interactive)
-           ════════════════════════════════════════════════════════ */
+        /* TABS — square-edged signage */
+        .tab-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+        .tab-btn,
+        .rw-tab {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border: 1.5px solid var(--rule);
+            border-radius: 999px;
+            background: var(--bg);
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+        .tab-btn:hover, .rw-tab:hover { background: var(--em-light); color: var(--em); border-color: var(--em); }
+        .tab-btn.active, .rw-tab.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+        .rw-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+
+        /* SIGMA SLIDER */
         .sweep-card {
-            background: linear-gradient(160deg, var(--em-deep) 0%, #0a2c1c 100%);
-            padding: 28px 26px 22px;
+            background: linear-gradient(170deg, var(--em-deep) 0%, #102a1d 100%);
+            padding: 28px 28px 22px;
         }
         .sweep-card .sigma-track-wrap { margin-top: 22px; }
-
-        /* sweep grid */
         #sweep-grid.grid-composite { max-width: 520px; margin: 0 auto; }
         #sweep-grid.grid-multi {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            max-width: 100%;
-            margin: 0 auto;
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 6px; max-width: 100%; margin: 0 auto;
         }
         @media (max-width: 700px) { #sweep-grid.grid-multi { grid-template-columns: repeat(3, 1fr); } }
-        #sweep-grid { transition: opacity 0.16s ease; min-height: 220px; }
+        #sweep-grid { transition: opacity 0.16s; min-height: 220px; }
         .sweep-cell {
             border-radius: 10px;
             overflow: hidden;
             background: #000;
             line-height: 0;
-            border: 1.5px solid rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.18);
         }
         .sweep-cell video { width: 100%; display: block; border-radius: 8px; }
         .shimmer {
             background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
             background-size: 200% 100%;
             animation: shimmer 1.4s infinite;
-            border: 1.5px solid rgba(255,255,255,0.10);
-            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.10);
         }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* sigma slider control (inside emerald card) */
-        .sigma-track-wrap { margin: 20px 0 8px; }
+        .sigma-track-wrap { margin: 22px 0 8px; }
         .sigma-labels {
-            position: relative;
-            height: 1.3em;
-            margin-bottom: 10px;
+            position: relative; height: 1.3em; margin-bottom: 12px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            color: rgba(234, 243, 236, 0.65);
+            font-size: 0.68rem;
+            color: rgba(227, 236, 230, 0.65);
             letter-spacing: 0.04em;
         }
         .sigma-labels span { position: absolute; white-space: nowrap; transform: translateX(-50%); }
@@ -873,106 +800,69 @@
         .sigma-labels span:nth-child(5) { left: 100%; color: var(--amber-soft); }
         .sigma-track {
             position: relative;
-            height: 6px;
-            border-radius: 99px;
-            background: linear-gradient(90deg, var(--em-glow) 0%, var(--em-mid) 26%, #d8b94a 60%, var(--amber-soft) 88%, var(--amber) 100%);
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--em-glow) 0%,
+                var(--em-mid) 28%,
+                var(--walnut-soft) 60%,
+                var(--amber) 100%);
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
         }
         .sigma-thumb {
             position: absolute;
-            top: 50%;
-            left: 0%;
+            top: 50%; left: 0%;
             transform: translate(-50%, -50%);
             width: 22px; height: 22px;
-            border-radius: 50%;
             background: #fff;
             border: 2px solid var(--em-deep);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            border-radius: 50%;
             cursor: grab;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
         }
         .sigma-thumb:active { cursor: grabbing; transform: translate(-50%,-50%) scale(0.94); }
         .sigma-readout {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             font-weight: 600;
             color: var(--em-glow);
             text-align: center;
-            margin-top: 14px;
+            margin-top: 16px;
         }
         .sigma-readout strong { color: #fff; }
-        .sigma-readout span { color: rgba(234, 243, 236, 0.7); font-weight: 400; font-style: italic; }
+        .sigma-readout span { color: rgba(227, 236, 230, 0.7); font-weight: 400; font-style: italic; }
 
-        /* tabs */
-        .tab-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-        .tab-btn,
-        .rw-tab {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            font-weight: 500;
-            padding: 5px 14px;
-            border: 1.5px solid var(--rule);
-            border-radius: 999px;
-            background: var(--bg);
-            color: var(--ink);
-            cursor: pointer;
-            transition: all 0.18s ease;
-            white-space: nowrap;
-        }
-        .tab-btn:hover, .rw-tab:hover {
-            background: var(--em-light);
-            color: var(--em);
-            border-color: var(--em);
-        }
-        .tab-btn.active, .rw-tab.active {
-            background: var(--ink);
-            color: var(--bg);
-            border-color: var(--ink);
-        }
-        .rw-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
-
-        /* ════════════════════════════════════════════════════════
-           PCD STRIP (in method, on emerald card)
-           ════════════════════════════════════════════════════════ */
-        .emerald-card.pcd-strip {
-            padding: 26px 26px 22px;
-            margin: 22px 0;
-        }
+        /* PCD STRIP */
+        .emerald-card.pcd-strip { padding: 28px 28px 22px; margin: 22px 0; }
         .emerald-card .pcd-divider {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin: 20px auto 18px;
+            display: flex; align-items: center; gap: 14px;
+            margin: 22px auto 18px;
             max-width: 560px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             font-style: italic;
-            color: rgba(234, 243, 236, 0.75);
+            color: rgba(227, 236, 230, 0.75);
         }
         .emerald-card .pcd-divider div {
             flex: 1; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(234, 243, 236, 0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(227, 236, 230, 0.3), transparent);
         }
-        .pcd-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
+        .pcd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .pcd-cell { text-align: center; }
         .pcd-cell img {
             width: 100%;
-            border: 1.5px solid rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.18);
             border-radius: 12px;
             background: #fff;
         }
         .pcd-cell .step {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.74rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: rgba(234, 243, 236, 0.7);
-            margin-top: 6px;
+            color: rgba(227, 236, 230, 0.75);
+            margin-top: 8px;
         }
         .emerald-card .ref-rollout {
             max-width: 520px;
@@ -981,83 +871,69 @@
             overflow: hidden;
         }
         .emerald-card .ref-rollout video {
-            width: 100%;
-            display: block;
+            width: 100%; display: block;
             border-radius: 8px;
-            border: 1.5px solid rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.18);
         }
         .emerald-card .cap-on-card {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            color: rgba(234, 243, 236, 0.7);
-            text-align: center;
-            margin-top: 14px;
-            line-height: 1.6;
+            font-size: 0.76rem;
+            color: rgba(227, 236, 230, 0.75);
+            text-align: left;
+            margin: 14px 0 0;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            line-height: 1.65;
+            letter-spacing: 0.02em;
         }
-        .emerald-card .cap-on-card em { color: rgba(234, 243, 236, 0.95); font-style: italic; }
+        .emerald-card .cap-on-card em { color: rgba(227, 236, 230, 0.95); font-style: italic; }
         .emerald-card .cap-on-card strong { color: #fff; }
 
-        /* static videos (fade-in once ready) */
+        /* STATIC VIDS */
         .static-vid {
-            width: 100%;
-            display: block;
-            background: #000;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            border-radius: 6px;
+            width: 100%; display: block; background: #000;
+            opacity: 0; transition: opacity 0.4s;
+            border-radius: 14px;
         }
         .static-vid.ready { opacity: 1; }
 
-        /* ════════════════════════════════════════════════════════
-           ROLLOUTS (real world)
-           ════════════════════════════════════════════════════════ */
-        .rollout-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin: 14px 0;
-        }
+        /* ROLLOUTS */
+        .rollout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
         @media (max-width: 600px) { .rollout-grid { grid-template-columns: 1fr; } }
         .rollout-col {
-            border: 1.5px solid var(--rule);
+            border: 1px solid var(--rule-soft);
             border-radius: 14px;
             padding: 14px;
-            background: var(--bg-warm);
+            background: var(--panel);
+            box-shadow: var(--sh-soft);
         }
         .rollout-col.emerald-col {
-            background: linear-gradient(160deg, var(--em-deep) 0%, #0f3a26 100%);
-            color: #eaf3ec;
+            background: linear-gradient(170deg, var(--em-deep) 0%, #143425 100%);
+            color: #e3ece6;
             border-color: var(--rule);
             position: relative;
             overflow: hidden;
+            box-shadow: var(--sh-emerald);
         }
         .rollout-col.emerald-col::before {
             content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(93,207,168,0.16) 0%, transparent 60%);
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(141,181,155,0.16) 0%, transparent 60%);
             pointer-events: none;
         }
         .rollout-col-title {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             font-weight: 700;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
-            text-align: center;
+            text-align: left;
             margin-bottom: 12px;
             color: var(--em);
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
         }
         .rollout-col.emerald-col .rollout-col-title { color: var(--em-glow); }
-        .rollout-vid-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            position: relative;
-            z-index: 1;
-        }
+        .rollout-vid-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; position: relative; z-index: 1; }
         .rollout-cell {
             border-radius: 8px;
             overflow: hidden;
@@ -1065,77 +941,57 @@
             line-height: 0;
             cursor: zoom-in;
             position: relative;
-            border: 1.5px solid var(--rule);
-            transition: transform 0.22s ease, box-shadow 0.22s ease;
+            border: 1px solid var(--rule);
+            transition: transform 0.22s, box-shadow 0.22s;
         }
         .rollout-col.emerald-col .rollout-cell { border-color: rgba(255,255,255,0.18); }
-        .rollout-cell:hover {
-            transform: scale(1.04);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.32);
-            z-index: 2;
-        }
+        .rollout-cell:hover { transform: scale(1.04); box-shadow: 0 6px 16px rgba(0,0,0,0.32); z-index: 2; }
         .rollout-cell::after {
             content: '⤢';
             position: absolute; bottom: 4px; right: 5px;
             font-size: 0.7rem; color: rgba(255,255,255,0.7);
             pointer-events: none;
         }
-        .rollout-cell video { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+        .rollout-cell video { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; border-radius: 8px; }
 
         .learning-wrap {
-            border: 1.5px solid var(--rule);
+            border: 1px solid var(--rule-soft);
             border-radius: 14px;
             overflow: hidden;
-            background: var(--bg-warm);
+            background: var(--panel);
             margin-top: 14px;
+            box-shadow: var(--sh-soft);
         }
         .learning-title {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             font-weight: 700;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
-            text-align: center;
-            padding: 10px;
-            border-bottom: 1.5px solid var(--rule);
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--rule-soft);
             color: var(--em);
             background: var(--bg);
         }
         #rw-learning-video { width: 100%; display: block; background: #000; }
 
-        /* ════════════════════════════════════════════════════════
-           QUALITATIVE
-           ════════════════════════════════════════════════════════ */
-        .tm-anim-card {
-            padding: 24px 24px 18px;
-        }
-        .tm-anim-wrap {
-            display: flex;
-            gap: 24px;
-            align-items: flex-start;
-        }
+        /* QUALITATIVE */
+        .tm-anim-card { padding: 26px 28px 20px; }
+        .tm-anim-wrap { display: flex; gap: 28px; align-items: flex-start; }
         @media (max-width: 760px) { .tm-anim-wrap { flex-direction: column; align-items: stretch; } }
-        .tm-frame-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .tm-frame-col { display: flex; flex-direction: column; align-items: center; }
         .tm-frame-wrap {
-            position: relative;
-            display: inline-block;
-            border: 1.5px solid rgba(255,255,255,0.22);
-            border-radius: 12px;
+            position: relative; display: inline-block;
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 14px;
             overflow: hidden;
             background: #000;
         }
         #tm-current-frame {
-            width: 280px;
-            aspect-ratio: 400 / 340;
-            display: block;
-            transition: opacity 0.15s ease;
-            background: #000;
-            object-fit: cover;
-            flex-shrink: 0;
+            width: 280px; aspect-ratio: 400 / 340;
+            display: block; transition: opacity 0.15s;
+            background: #000; object-fit: cover; flex-shrink: 0;
         }
         @media (max-width: 760px) {
             .tm-frame-wrap { display: block; width: 100%; }
@@ -1149,23 +1005,21 @@
             font-weight: 700;
             color: var(--em-glow);
             line-height: 1;
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
+            margin-bottom: 10px;
+            letter-spacing: -0.025em;
         }
         #tm-chart { width: 100%; height: auto; display: block; overflow: visible; }
         #tm-chunk-counter {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.74rem;
-            color: rgba(234, 243, 236, 0.7);
+            font-size: 0.72rem;
+            color: rgba(227, 236, 230, 0.7);
             margin-top: 10px;
             text-align: center;
+            letter-spacing: 0.04em;
         }
         #tm-filmstrip {
-            display: flex;
-            gap: 6px;
-            margin-top: 18px;
-            overflow-x: auto;
-            padding-bottom: 4px;
+            display: flex; gap: 6px; margin-top: 18px;
+            overflow-x: auto; padding-bottom: 4px;
             scrollbar-width: thin;
             justify-content: center;
         }
@@ -1175,49 +1029,104 @@
             aspect-ratio: 400/340;
             border-radius: 8px;
             overflow: hidden;
-            border: 1.5px solid rgba(255,255,255,0.22);
+            border: 1px solid rgba(255,255,255,0.22);
             cursor: pointer;
             transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
             background: #000;
         }
         .tm-thumb img {
-            width: 100%; height: 100%; object-fit: cover; display: block;
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
             filter: brightness(0.7);
             transition: filter 0.25s;
         }
         .tm-thumb:hover img { filter: brightness(0.9); }
-        .tm-thumb.active { border-color: var(--em-glow); transform: scale(1.06); box-shadow: 0 4px 12px rgba(93,207,168,0.4); }
+        .tm-thumb.active { border-color: var(--em-glow); transform: scale(1.06); border-width: 2px; }
         .tm-thumb.active img { filter: brightness(1.05); }
         .tm-play-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
+            display: inline-flex; align-items: center; gap: 7px;
             background: rgba(255,255,255,0.06);
-            color: #eaf3ec;
-            border: 1.5px solid rgba(255,255,255,0.2);
+            color: #e3ece6;
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 999px;
-            padding: 6px 16px;
+            padding: 7px 16px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            font-weight: 500;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             cursor: pointer;
             transition: background 0.18s, color 0.18s, border-color 0.18s;
-            margin-top: 12px;
+            margin-top: 14px;
         }
-        .tm-play-btn:hover {
-            background: rgba(93,207,168,0.18);
-            color: #fff;
-            border-color: var(--em-glow);
+        .tm-play-btn:hover { background: rgba(141,181,155,0.18); color: #fff; border-color: var(--em-glow); }
+
+        .card-instruction {
+            text-align: center;
+            font-family: 'Fraunces', serif;
+            font-variation-settings: 'opsz' 36;
+            font-style: italic;
+            font-weight: 400;
+            font-size: 1.18rem;
+            color: var(--em-glow);
+            margin: 0 0 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(227, 236, 230, 0.10);
+            line-height: 1.4;
         }
 
-        /* ════════════════════════════════════════════════════════
-           BIBTEX
-           ════════════════════════════════════════════════════════ */
+        /* KEY INSIGHT (light callout — concrete with green band) */
+        .key-insight {
+            display: block;
+            position: relative;
+            padding: 24px 28px;
+            margin: 24px 0 0;
+            background: var(--panel);
+            border: 1px solid var(--rule-soft);
+            border-left: 3px solid var(--em);
+            border-radius: 14px;
+            box-shadow: var(--sh-card);
+        }
+        .key-insight .ki-label {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--em);
+            margin-bottom: 12px;
+        }
+        .key-insight p {
+            font-family: 'Fraunces', serif;
+            font-variation-settings: 'opsz' 36;
+            font-size: 1.14rem;
+            line-height: 1.55;
+            color: var(--ink);
+            margin: 0;
+        }
+        .key-insight strong { color: var(--em-deep); font-weight: 700; }
+        .key-insight em { color: var(--em); font-style: italic; font-weight: 600; }
+
+        /* COMPARE ROW */
+        .compare-row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; }
+        .compare-row > div { flex: 1 1 280px; text-align: center; }
+        .compare-row .label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-muted);
+            margin-bottom: 8px;
+        }
+
+        /* BIBTEX */
         .bibtex-wrap { position: relative; }
         .bibtex-box {
             background: var(--ink);
-            color: #f7f1e0;
-            border: 1.5px solid var(--rule);
+            color: #ede8d9;
+            border: 1px solid var(--rule);
             border-radius: 16px;
             padding: 22px 26px;
             font-family: 'JetBrains Mono', monospace;
@@ -1226,42 +1135,34 @@
             overflow-x: auto;
             white-space: pre;
             margin: 0;
+            box-shadow: var(--sh-card);
         }
         .bibtex-copy {
             position: absolute;
             top: 12px;
             right: 12px;
             background: rgba(255,255,255,0.06);
-            color: #eaf3ec;
+            color: #e3ece6;
             border: 1px solid rgba(255,255,255,0.18);
             border-radius: 8px;
-            padding: 5px 12px;
+            padding: 6px 14px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
             cursor: pointer;
             transition: background 0.18s, color 0.18s, border-color 0.18s;
             z-index: 2;
         }
-        .bibtex-copy:hover {
-            background: var(--em);
-            color: #fff;
-            border-color: var(--em);
-        }
-        .bibtex-copy.copied {
-            background: var(--em);
-            border-color: var(--em);
-            color: #fff;
-        }
+        .bibtex-copy:hover { background: var(--em); color: #fff; border-color: var(--em); }
+        .bibtex-copy.copied { background: var(--em); color: #fff; border-color: var(--em); }
 
-        /* ════════════════════════════════════════════════════════
-           CODE
-           ════════════════════════════════════════════════════════ */
+        /* CODE */
         code:not(.instruction-box) {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.86em;
-            background: var(--bg-warm);
+            background: var(--panel);
             color: var(--ink);
             padding: 0.1em 0.42em;
             border-radius: 4px;
@@ -1271,8 +1172,8 @@
             display: block;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.82rem;
-            background: var(--bg-warm);
-            border: 1.5px solid var(--rule);
+            background: var(--panel);
+            border: 1px solid var(--rule-soft);
             border-radius: 8px;
             padding: 8px 14px;
             color: var(--ink);
@@ -1280,33 +1181,30 @@
             max-width: 640px;
         }
 
-        /* ════════════════════════════════════════════════════════
-           FOOTER
-           ════════════════════════════════════════════════════════ */
+        /* FOOTER (concrete plinth) */
         footer {
-            margin: 80px 0 0;
-            padding: 32px 26px 40px;
+            margin: 96px 0 0;
+            padding: 36px 32px 44px;
             border-top: 1.5px solid var(--rule);
             text-align: center;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             color: var(--ink-muted);
             background: var(--bg);
+            letter-spacing: 0.04em;
         }
         footer a { color: var(--em); text-decoration: none; }
         footer a:hover { text-decoration: underline; }
 
-        /* ════════════════════════════════════════════════════════
-           LIGHTBOX
-           ════════════════════════════════════════════════════════ */
+        /* LIGHTBOX */
         .lb {
-            position: fixed; inset: 0; background: rgba(20,32,24,0.92);
+            position: fixed; inset: 0; background: rgba(28, 28, 25, 0.92);
             display: flex; align-items: center; justify-content: center;
             z-index: 9999; opacity: 0; pointer-events: none;
             transition: opacity 0.2s;
         }
         .lb.open { opacity: 1; pointer-events: auto; }
-        .lb img { max-width: 92vw; max-height: 90vh; border-radius: 10px; border: 1.5px solid var(--bg); box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+        .lb img { max-width: 92vw; max-height: 90vh; border: 1.5px solid var(--bg); border-radius: 10px; box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
         .lb-x {
             position: absolute; top: 14px; right: 18px;
             background: rgba(255,255,255,0.16); border: none;
@@ -1315,24 +1213,19 @@
         }
         #lb-vid { max-width: 90vw; max-height: 85vh; border-radius: 10px; display: none; }
 
-        /* ════════════════════════════════════════════════════════
-           SCROLL FADE-IN
-           ════════════════════════════════════════════════════════ */
+        /* SCROLL FADE */
         .fade-in {
             opacity: 0;
-            transform: translateY(22px);
+            transform: translateY(24px);
             transition: opacity 0.7s cubic-bezier(.16,.7,.3,1), transform 0.7s cubic-bezier(.16,.7,.3,1);
         }
-        .fade-in.visible {
-            opacity: 1;
-            transform: none;
-        }
+        .fade-in.visible { opacity: 1; transform: none; }
         @media (prefers-reduced-motion: reduce) {
             .fade-in { opacity: 1; transform: none; transition: none; }
             .spine-stop.active .dot { animation: none; }
         }
 
-        /* keyboard accessibility */
+        /* FOCUS */
         .spine-stop:focus-visible .dot,
         .qlink:focus-visible,
         .tab-btn:focus-visible,
@@ -1349,14 +1242,13 @@
             outline-offset: 3px;
         }
 
-        /* ════════════════════════════════════════════════════════
-           VIDEO LIGHTBOX
-           ════════════════════════════════════════════════════════ */
+        /* VIDEO LIGHTBOX */
         #video-lb {
             display:none; position:fixed; inset:0; z-index:9998;
-            background:rgba(20,32,24,0.92); align-items:center; justify-content:center;
+            background:rgba(28,28,25,0.92); align-items:center; justify-content:center;
             backdrop-filter:blur(6px);
         }
+
     </style>
 </head>
 <body>
@@ -1364,7 +1256,7 @@
 <!-- ════════════════ σ-SPINE  (sticky page-as-σ-axis) ════════════════ -->
 <nav class="sigma-spine" id="sigma-spine">
     <div class="spine-inner">
-        <div class="spine-brand" title="TMRL — back to top" onclick="window.scrollTo({top:0,behavior:'smooth'});" style="cursor:pointer;">
+        <div class="spine-brand" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'});" style="cursor:pointer;">
             <span class="brand-mark">TMRL</span>
         </div>
         <div class="spine-track" id="spine-track">
@@ -1392,19 +1284,19 @@
 <header class="hero">
     <div class="hero-meta">Robotics: Science and Systems (RSS)&nbsp;2026</div>
 
-    <h1 class="hero-brand">TMRL:</h1>
+    <h1 class="hero-brand">TMRL</h1>
     <p class="hero-subtitle">Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning</p>
 
-    <p class="hero-tagline">
+    <!-- <p class="hero-tagline">
         Real-world reinforcement learning with a VLA &mdash; in under one hour.
-    </p>
+    </p> -->
 
     <div class="hero-authors">
-        <a href="https://matthewh6.github.io/" target="_blank">Matthew M Hong</a><sup>1</sup> &nbsp;·&nbsp;
-        <a href="https://www.jessezhang.net/" target="_blank">Jesse Zhang</a><sup>1</sup> &nbsp;·&nbsp;
-        <a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en/" target="_blank">Anusha Nagabandi</a><sup>2</sup> &nbsp;·&nbsp;
+        <a href="https://matthewh6.github.io/" target="_blank">Matthew M Hong</a><sup>1</sup>&nbsp;&nbsp;&nbsp;
+        <a href="https://www.jessezhang.net/" target="_blank">Jesse Zhang</a><sup>1</sup>&nbsp;&nbsp;&nbsp;
+        <a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en/" target="_blank">Anusha Nagabandi</a><sup>2</sup>&nbsp;&nbsp;&nbsp;
         <a href="https://abhishekunique.github.io/" target="_blank">Abhishek Gupta</a><sup>1</sup>
-        <span class="affil"><sup>1</sup>University of Washington &nbsp;·&nbsp; <sup>2</sup>Amazon FAR</span>
+        <span class="affil"><sup>1</sup>University of Washington&nbsp;&nbsp;&nbsp;&nbsp;<sup>2</sup>Amazon FAR</span>
     </div>
 
     <!-- TEASER POLAROID -->
@@ -1441,14 +1333,14 @@
             <span class="card-icon" aria-hidden="true">⇌</span>
             <h3 class="card-tag">Approach</h3>
             <h4 class="card-title">Context Smoothing + Timestep Modulation</h4>
-            <p><strong>CSP</strong> noises the context to interpolate between <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) and <em>p</em>(<i>a</i>), aliasing unseen contexts back in-distribution. <strong>TMRL</strong> dials &sigma; per action chunk.</p>
+            <p><strong>CSP</strong> learns one policy that interpolates between conditional and marginal action distributions. <strong>TMRL</strong> picks the right interpolation per step.</p>
         </article>
 
         <article class="emerald-card">
             <span class="card-icon" aria-hidden="true">◷</span>
             <h3 class="card-tag">Result</h3>
             <h4 class="card-title">Real-world RL in &lt;&thinsp;1 hr</h4>
-            <p>With a context-smoothed &pi;<sub>0</sub>, <strong>TMRL</strong> reaches near-perfect success on three real-robot tasks: under an hour on WidowX, under four on Franka.</p>
+            <p><strong>TMRL</strong> reaches near-perfect success on three real-robot tasks: under an hour on WidowX, under four on Franka.</p>
         </article>
     </div>
 </section>
@@ -1462,11 +1354,11 @@
     </header>
 
     <p class="body-text">
-        Robots trained by imitation copy demonstrations narrowly &mdash; they fail in unfamiliar situations, and reinforcement learning can&rsquo;t recover them because the imitation policy starts so confidently wrong that there&rsquo;s no learning signal. <strong>We deliberately blur what the policy &ldquo;knows&rdquo; so RL can find improvements within an hour of real-robot time.</strong>
+        Robots trained by imitation copy demonstrations narrowly &mdash; they fail in unfamiliar situations, and reinforcement learning can&rsquo;t recover them because the imitation policy starts so confidently wrong that there&rsquo;s no learning signal. <strong>We deliberately blur what the policy &ldquo;knows&rdquo; so RL can discover solutions that go beyond the demonstrations it was trained on.</strong>
     </p>
 
     <p class="body-text">
-        On a 2D pointmaze from <a href="https://github.com/seohongpark/ogbench" target="_blank">OGBench</a>, we train two policies &mdash; one approximating the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), the other the marginal <em>p</em>(<i>a</i>) &mdash; where <i>c</i> is the goal position. Both train on <code>pointmaze-large</code> and evaluate on the larger, out-of-distribution <code>pointmaze-giant</code> with an unseen goal (<strong style="color:#c08800;">agent in yellow</strong>, <strong style="color:#c44b66;">goal in pink</strong>).
+        On a 2D pointmaze from <a href="https://seohong.me/projects/ogbench/" target="_blank">OGBench</a>, we train two policies &mdash; one approximating the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), the other the marginal <em>p</em>(<i>a</i>) &mdash; where <i>c</i> is the goal position. Both train on <code>pointmaze-large</code> and evaluate on the larger, out-of-distribution <code>pointmaze-giant</code> with an unseen goal (<strong style="color:#c08800;">agent in yellow</strong>, <strong style="color:#c44b66;">goal in pink</strong>).
     </p>
 
     <div class="polaroid-row">
@@ -1504,30 +1396,8 @@
             <img src="static/figures/method.png" alt="TMRL method overview">
         </a>
         <figcaption>
-            <strong>Fig.&nbsp;1.</strong> <em>Left:</em> CSP pre-trains p<sub>θ</sub> across all &sigma; by corrupting <i>c</i> with q<sub>σ</sub>. <em>Right:</em> TMRL freezes p<sub>θ</sub> and learns &pi;<sub>HL</sub>(<i>z</i>,&thinsp;&sigma;&thinsp;|&thinsp;<i>s</i>) to maximize reward.
+            <strong>Fig.&nbsp;1.</strong> <em>Left &mdash; CSP (pre-training):</em> one diffusion policy p<sub>θ</sub> trained across all &sigma; by corrupting context <i>c</i> with q<sub>σ</sub> &mdash; precise imitation at &sigma;&thinsp;=&thinsp;0, broad coverage at &sigma;&thinsp;=&thinsp;T. <em>Right &mdash; TMRL (fine-tuning):</em> the high-level policy &pi;<sub>HL</sub>(<i>z</i>,&thinsp;&sigma;&thinsp;|&thinsp;<i>s</i>) learns to modulate &sigma; per action chunk to maximize reward.
         </figcaption>
-    </figure>
-
-    <div class="card-grid card-grid-2">
-        <article class="emerald-card">
-            <span class="card-icon" aria-hidden="true">≈</span>
-            <h3 class="card-tag">Pre-training · CSP</h3>
-            <h4 class="card-title">Context-Smoothed Policy</h4>
-            <p>For each pair (<i>c</i>,&thinsp;<i>a</i>): sample &sigma;, draw <span style="text-decoration:overline">c</span>&thinsp;~&thinsp;q<sub>&sigma;</sub>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;c), then optimize p<sub>θ</sub>(<i>a</i>&thinsp;|&thinsp;<span style="text-decoration:overline">c</span>,&thinsp;&sigma;). Training across &sigma;&nbsp;∈&nbsp;[0,&thinsp;<em>T</em>] yields a single weight set covering the full conditional → marginal spectrum.</p>
-        </article>
-        <article class="emerald-card">
-            <span class="card-icon" aria-hidden="true">◎</span>
-            <h3 class="card-tag">Fine-tuning · TMRL</h3>
-            <h4 class="card-title">Timestep-Modulated RL</h4>
-            <p>Freeze p<sub>θ</sub>. Run off-policy RL over &pi;<sub>HL</sub>(<i>z</i>,&thinsp;&sigma;&thinsp;|&thinsp;<i>s</i>). Large &sigma; drives structured exploration beyond the conditional support; small &sigma; recovers precise imitation. The choice is made per chunk &mdash; modulation happens within a single rollout.</p>
-        </article>
-    </div>
-
-    <figure class="polaroid" style="max-width:55%; margin: 26px auto 8px;">
-        <a href="#" data-lb="static/figures/context_smoothing.gif">
-            <img src="static/figures/context_smoothing.gif" alt="Context smoothing visualization">
-        </a>
-        <figcaption><strong>Context smoothing in action.</strong> As &sigma; rises, the action distribution interpolates smoothly from <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) at &sigma;&thinsp;=&thinsp;0 to <em>p</em>(<i>a</i>) at &sigma;&thinsp;=&thinsp;T.</figcaption>
     </figure>
 
     <h3 class="sub-head">Diffusion noise on pointcloud contexts</h3>
@@ -1557,7 +1427,7 @@
             <figure class="pcd-cell"><img src="static/videos/pcd_drill1.gif" alt="t=0.1 pointcloud"><figcaption class="step">t&thinsp;=&thinsp;0.1</figcaption></figure>
         </div>
 
-        <p class="cap-on-card"><em>Top:</em> <strong>TMRL on a held-out drill</strong> (context <i>c</i> = pointcloud). <em>Bottom:</em> <i>q</i><sub>&sigma;</sub> erases structure as <em>t</em> rises &mdash; aliasing the OOD object back to in-distribution shapes the policy already grasps.</p>
+        <p class="cap-on-card"><em>Top:</em> <strong>TMRL on a held-out drill</strong> (context <i>c</i> = pointcloud). <em>Bottom:</em> <i>q</i><sub>&sigma;</sub> removes structure as <em>t</em> rises &mdash; aliasing the OOD object back to in-distribution shapes the policy has seen during training.</p>
     </div>
 </section>
 
@@ -1566,11 +1436,11 @@
     <header class="sec-head">
         <span class="sigma-rule"></span>
         <h2 class="sec-title">σ Slider</h2>
-        <p class="sec-lead">The conditional ↔ marginal spectrum visualized.</p>
+        <p class="sec-lead">The conditional ↔ marginal spectrum.</p>
     </header>
 
     <p class="body-text">
-        As &sigma; rises, q<sub>&sigma;</sub>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;<i>c</i>) spreads mass over nearby contexts and the policy <em>borrows</em> coherent action chunks rather than dithering. The endpoints anchor the spectrum: &sigma;&thinsp;=&thinsp;0 recovers <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), &sigma;&thinsp;=&thinsp;<em>T</em> recovers <em>p</em>(<i>a</i>). On unseen contexts the conditional collapses to a narrow distribution that leaves RL with no reward signal &mdash; TMRL learns where on this spectrum to operate.
+        <strong>CSP</strong> trains one policy across all &sigma; by corrupting the context <i>c</i> with <em>q<sub>σ</sub></em>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;<i>c</i>). The endpoints anchor the spectrum: &sigma;&thinsp;=&thinsp;0 recovers <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), &sigma;&thinsp;=&thinsp;<em>T</em> recovers <em>p</em>(<i>a</i>). At inference, &pi;<sub>HL</sub> modulates &sigma; &mdash; high to <em>borrow</em> coherent actions from related contexts, low for precise execution.</strong>.
     </p>
 
     <div id="sweep-tabs" class="tab-row" style="margin-top:24px;"></div>
@@ -1597,10 +1467,6 @@
         </div>
     </div>
 
-    <aside class="key-insight">
-        <span class="ki-label">Key insight</span>
-        <p>The perturbation lives in <strong>context space, not action space.</strong> Action diversity grows with &sigma; while individual chunks stay coherent &mdash; CSP <em>borrows</em> action sequences from nearby contexts rather than jittering the current one.</p>
-    </aside>
 </section>
 
 <!-- ════════════════ SIMULATION ════════════════ -->
@@ -1613,7 +1479,7 @@
 
     <h3 class="sub-head">Action coverage before RL: Success@K</h3>
     <p class="body-text">
-        <strong>Success@K</strong> &mdash; the fraction of out-of-distribution states where at least one of <em>K</em> base-policy rollouts succeeds &mdash; directly measures action coverage. On <code>pointmaze-giant</code> and <code>cube-single</code>, CSP exceeds PostBC and BC at every <em>K</em>, with the gap widest on <code>cube-single</code> where both baselines remain at zero.
+        <strong>Success@K</strong> &mdash; the fraction of out-of-distribution states where at least one of <em>K</em> base-policy rollouts succeeds. On <code>pointmaze-giant</code> and <code>cube-single</code>, CSP exceeds PostBC and BC at every <em>K</em>, with the gap widest on <code>cube-single</code> where both baselines remain at zero.
     </p>
 
     <figure class="polaroid wide-polaroid" style="max-width:82%; margin: 18px auto 0;">
@@ -1639,7 +1505,7 @@
         </div>
     </div>
 
-    <figure class="polaroid wide-polaroid flush">
+    <figure class="polaroid wide-polaroid">
         <a href="#" data-lb="static/figures/sim_results.png">
             <img src="static/figures/sim_results.png" alt="Simulation RL results">
         </a>
@@ -1652,7 +1518,7 @@
     <header class="sec-head">
         <span class="sigma-rule"></span>
         <h2 class="sec-title">Real-World RL</h2>
-        <p class="sec-lead">Context-smoothed π<sub>0</sub> in the real world.</p>
+        <p class="sec-lead">Context-Smoothed π<sub>0</sub> in the real world.</p>
     </header>
 
     <div class="result-callout xl-callout">
@@ -1666,7 +1532,7 @@
         <video class="static-vid" autoplay loop muted playsinline>
             <source src="static/videos/csp_vla.mp4" type="video/mp4">
         </video>
-        <figcaption><strong>CSP for VLAs.</strong> Noise the VLM embedding context with q<sub>σ</sub> to dial &pi;<sub>0</sub> across the conditional → marginal spectrum; &pi;<sub>HL</sub> picks &sigma; online.</figcaption>
+        <figcaption><strong>CSP for VLAs.</strong> Noise the VLM embedding context with q<sub>σ</sub> to make &pi;<sub>0</sub> tunable across the conditional → marginal spectrum; &pi;<sub>HL</sub> picks &sigma; online.</figcaption>
     </figure>
 
     <p class="body-text" style="margin-top:18px;">
@@ -1675,7 +1541,7 @@
         <a href="https://droid-dataset.github.io/" target="_blank">DROID</a> (Franka). TMRL aliases the current context with related dataset behaviors whenever a broader marginal helps.
     </p>
 
-    <figure class="polaroid wide-polaroid flush">
+    <figure class="polaroid wide-polaroid">
         <a href="#" data-lb="static/figures/real_results.png">
             <img src="static/figures/real_results.png" alt="Real-world RL fine-tuning results">
         </a>
@@ -1720,11 +1586,10 @@
     <header class="sec-head">
         <span class="sigma-rule"></span>
         <h2 class="sec-title">What Does TMRL Learn?</h2>
-        <p class="sec-lead">TMRL chooses &mdash; <em>t̃ low for precision, high for exploration.</em></p>
     </header>
 
     <p class="body-text">
-        &pi;<sub>HL</sub> treats the diffusion timestep <i>t̃</i> as an adaptive coverage dial, choosing it per action chunk. Below, the converged TMRL policy on WidowX <code>shrimp-in-drawer</code> drives <strong><i>t̃</i> low through the precision-critical pick</strong> (precise imitation) and higher during reaching and final approach.
+        &pi;<sub>HL</sub> treats the diffusion timestep <i>t̃</i> as an adaptive coverage control, choosing it per action chunk. Below, the converged TMRL policy on WidowX <code>shrimp-in-drawer</code> learns to use <strong><i>t̃</i> low through the precision-critical pick</strong> (precise imitation) and higher during reaching and placing.
     </p>
 
     <div class="emerald-card tm-anim-card">
@@ -1771,9 +1636,8 @@
 <!-- ════════════════ FOOTER ════════════════ -->
 <footer>
     Inspired by
-    <a href="https://polaris-evals.github.io/" target="_blank">PolaRiS</a>, 
-    <a href="https://www.videomimic.net/" target="_blank">VideoMimic</a>, and 
-    <a href="https://weirdlabuw.github.io/omnireset/" target="_blank">Omnireset</a>,
+    <a href="https://polaris-evals.github.io/" target="_blank">PolaRiS</a> and
+    <a href="https://www.videomimic.net/" target="_blank">VideoMimic</a> 
 </footer>
 
 <!-- ════════════════ FULL VIDEO LIGHTBOX ════════════════ -->
