@@ -1336,22 +1336,22 @@
         <article class="emerald-card">
             <span class="card-icon" aria-hidden="true">↓</span>
             <h3 class="card-tag">Problem</h3>
-            <h4 class="card-title">BC bottlenecks RL</h4>
-            <p>In unseen contexts, the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) collapses. BC assigns near-zero probability to optimal actions, leaving RL without a gradient signal.</p>
+            <h4 class="card-title">BC&rsquo;s coverage is too narrow for RL</h4>
+            <p>BC produces narrow action distributions that lack the coverage RL needs for exploration. In out-of-distribution contexts the conditional collapses, rollouts yield no reward signal, and fine-tuning stalls.</p>
         </article>
 
         <article class="emerald-card">
             <span class="card-icon" aria-hidden="true">⇌</span>
             <h3 class="card-tag">Approach</h3>
             <h4 class="card-title">Context Smoothing + Timestep Modulation</h4>
-            <p><strong>CSP</strong> learns one policy that interpolates between conditional and marginal action distributions. <strong>TMRL</strong> picks the right interpolation per step.</p>
+            <p><strong>Context-Smoothed Pre-training (CSP)</strong> applies a diffusion-style forward-noising schedule to policy inputs &mdash; producing a continuous spectrum from precise imitation to broad coverage. <strong>Timestep-Modulated RL (TMRL)</strong> then trains an RL agent to dynamically adjust this conditioning strength per step.</p>
         </article>
 
         <article class="emerald-card">
             <span class="card-icon" aria-hidden="true">◷</span>
             <h3 class="card-tag">Result</h3>
-            <h4 class="card-title">Real-world RL in &lt;&thinsp;1 hr</h4>
-            <p><strong>TMRL</strong> reaches near-perfect success on three real-robot tasks: under an hour on WidowX, under four on Franka.</p>
+            <h4 class="card-title">Real-world fine-tuning in &lt;&thinsp;1 hr</h4>
+            <p>Works with arbitrary policy inputs &mdash; states, 3D point clouds, image-based VLAs. Real-world fine-tuning on complex manipulation in under an hour.</p>
         </article>
     </div>
 </section>
@@ -1365,11 +1365,11 @@
     </header>
 
     <p class="body-text">
-        Robots trained by imitation copy demonstrations narrowly &mdash; they fail in unfamiliar situations, and reinforcement learning can&rsquo;t recover them because the imitation policy starts so confidently wrong that there&rsquo;s no learning signal. <strong>We deliberately blur what the policy &ldquo;knows&rdquo; so RL can discover solutions that go beyond the demonstrations it was trained on.</strong>
+        Robots trained by imitation copy demonstrations narrowly &mdash; BC is overfit to observed data, so in sparsely covered contexts its conditional support collapses and assigns near-zero probability to optimal actions. Online rollouts yield no reward signal, and RL fine-tuning stalls. <strong>We instead inject forward-diffusion noise into policy inputs at pre-training, smoothly interpolating between the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) and marginal <em>p</em>(<i>a</i>) action distributions &mdash; broadening action coverage so RL can find improvements beyond the demonstrations.</strong>
     </p>
 
     <p class="body-text">
-        On a 2D pointmaze from <a href="https://seohong.me/projects/ogbench/" target="_blank">OGBench</a>, we train two policies &mdash; one approximating the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), the other the marginal <em>p</em>(<i>a</i>) &mdash; where <i>c</i> is the goal position. Both train on <code>pointmaze-large</code> and evaluate on the larger, out-of-distribution <code>pointmaze-giant</code> with an unseen goal (<strong style="color:#c08800;">agent in yellow</strong>, <strong style="color:#c44b66;">goal in pink</strong>).
+        On a 2D pointmaze from <a href="https://seohong.me/projects/ogbench/" target="_blank">OGBench</a>, we train two policies &mdash; one approximating <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), the other <em>p</em>(<i>a</i>) &mdash; where <i>c</i> is the goal position. Both train on <code>pointmaze-large</code> and evaluate on the larger <code>pointmaze-giant</code> environment, with an unseen goal location (<strong style="color:#c08800;">agent in yellow</strong>, <strong style="color:#c44b66;">goal in pink</strong>).
     </p>
 
     <div class="polaroid-row">
@@ -1390,7 +1390,7 @@
     <p class="cap" style="margin-top:14px;">OOD goal &mdash; <em>left:</em> <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) collapses and drifts away. <em>Right:</em> <em>p</em>(<i>a</i>) covers broadly enough to reach.</p>
 
     <blockquote class="pull-quote">
-        The conditional collapses on optimal actions; the marginal covers them only with low likelihood. We need a policy that <em>interpolates</em> between the two &mdash; and a mechanism to learn <em>where</em> on that interpolation to operate.
+        The conditional collapses on optimal actions; the marginal covers them only with low likelihood. Thus motivating a policy that can <em>interpolate</em> between the two &mdash; and a mechanism to learn <em>where</em> on that interpolation to operate.
     </blockquote>
 </section>
 
@@ -1407,13 +1407,13 @@
             <img src="static/figures/method.png" alt="TMRL method overview">
         </a>
         <figcaption>
-            <strong>Fig.&nbsp;1.</strong> <em>Left &mdash; CSP (pre-training):</em> one diffusion policy p<sub>θ</sub> trained across all &sigma; by corrupting context <i>c</i> with q<sub>σ</sub> &mdash; precise imitation at &sigma;&thinsp;=&thinsp;0, broad coverage at &sigma;&thinsp;=&thinsp;T. <em>Right &mdash; TMRL (fine-tuning):</em> the high-level policy &pi;<sub>HL</sub>(<i>z</i>,&thinsp;&sigma;&thinsp;|&thinsp;<i>s</i>) learns to modulate &sigma; per action chunk to maximize reward.
+            <strong>Fig.&nbsp;1.</strong> <em>Left &mdash; CSP (pre-training):</em> one policy p<sub>θ</sub> trained across all &sigma; by corrupting context <i>c</i> with q<sub>σ</sub> &mdash; precise imitation at &sigma;&thinsp;=&thinsp;0, broad coverage at &sigma;&thinsp;=&thinsp;T. <em>Right &mdash; TMRL (fine-tuning):</em> the high-level policy &pi;<sub>HL</sub>(<i>z</i>,&thinsp;&sigma;&thinsp;|&thinsp;<i>s</i>) learns to modulate &sigma; per action chunk to maximize reward.
         </figcaption>
     </figure>
 
     <h3 class="sub-head">Diffusion noise on pointcloud contexts</h3>
     <p class="body-text">
-        On the <code>dexterous-grasping</code> suite, the context <i>c</i> is the object pointcloud. As &sigma; rises, <i>q</i><sub>&sigma;</sub> progressively corrupts <i>c</i> with Gaussian noise: the pointcloud slowly loses its original structure, aliasing the out-of-distribution object with nearby in-distribution pointclouds seen during training. The policy can then borrow coherent grasps from related training contexts rather than fail on an unfamiliar shape.
+        On the <code>dexterous-grasping</code> suite, the context <i>c</i> is the object pointcloud. As &sigma; rises, <i>q</i><sub>&sigma;</sub> progressively corrupts <i>c</i>: the pointcloud slowly loses its original structure, aliasing the out-of-distribution object with nearby in-distribution pointclouds seen during training. The policy can then borrow coherent grasps from related training contexts rather than failing on an unfamiliar shape.
     </p>
 
     <div class="emerald-card pcd-strip">
@@ -1451,7 +1451,7 @@
     </header>
 
     <p class="body-text">
-        <strong>CSP</strong> trains one policy across all &sigma; by corrupting the context <i>c</i> with <em>q<sub>σ</sub></em>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;<i>c</i>). The endpoints anchor the spectrum: &sigma;&thinsp;=&thinsp;0 recovers <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), &sigma;&thinsp;=&thinsp;<em>T</em> recovers <em>p</em>(<i>a</i>). At inference, &pi;<sub>HL</sub> modulates &sigma; &mdash; high to <em>borrow</em> coherent actions from related contexts, low for precise execution.</strong>.
+        <strong>CSP</strong> trains one policy across all &sigma; by corrupting the context <i>c</i> with <em>q<sub>σ</sub></em>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;<i>c</i>). The endpoints anchor the spectrum: &sigma;&thinsp;=&thinsp;0 recovers <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), &sigma;&thinsp;=&thinsp;<em>T</em> recovers <em>p</em>(<i>a</i>).</strong>
     </p>
 
     <div id="sweep-tabs" class="tab-row" style="margin-top:24px;"></div>
@@ -1497,12 +1497,12 @@
         <a href="#" data-lb="static/figures/success_at_k.png">
             <img src="static/figures/success_at_k.png" alt="Success@K comparison">
         </a>
-        <figcaption><strong>CSP delivers coverage before RL.</strong> BC and PostBC stay near zero on <code>cube-single</code>; CSP rises with <em>K</em> &mdash; exactly the support RL needs.</figcaption>
+        <figcaption><strong>CSP provides coverage before RL.</strong> BC and PostBC stay near zero on <code>cube-single</code>; CSP rises with <em>K</em>.</figcaption>
     </figure>
 
     <h3 class="sub-head" style="margin-top:32px;">RL sample efficiency</h3>
     <p class="body-text">
-        We compare TMRL against several state-of-the-art baselines. TMRL outperforms or matches all baselines across four simulation tasks.
+        We compare against several state-of-the-art baselines. TMRL outperforms or matches all baselines across four simulation tasks.
     </p>
 
     <div class="result-callout-row">
@@ -1543,13 +1543,13 @@
         <video class="static-vid" autoplay loop muted playsinline>
             <source src="static/videos/csp_vla.mp4" type="video/mp4">
         </video>
-        <figcaption><strong>CSP for VLAs.</strong> Noise the VLM embedding context with q<sub>σ</sub> to make &pi;<sub>0</sub> tunable across the conditional → marginal spectrum; &pi;<sub>HL</sub> picks &sigma; online.</figcaption>
+        <figcaption><strong>CSP for VLAs.</strong> Noise the VLM embedding context with q<sub>σ</sub> to allow &pi;<sub>0</sub> to sample across the conditional → marginal spectrum.</figcaption>
     </figure>
 
     <p class="body-text" style="margin-top:18px;">
         We fine-tune a context-smoothed <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank">&pi;<sub>0</sub></a> on
         <a href="https://rail-berkeley.github.io/bridgedata/" target="_blank">BridgeData-v2</a> (WidowX 250) and
-        <a href="https://droid-dataset.github.io/" target="_blank">DROID</a> (Franka). TMRL aliases the current context with related dataset behaviors whenever a broader marginal helps.
+        <a href="https://droid-dataset.github.io/" target="_blank">DROID</a> (Franka).
     </p>
 
     <figure class="polaroid wide-polaroid">
@@ -1561,7 +1561,7 @@
 
     <h3 class="sub-head" style="margin-top:32px;">Per-task rollouts</h3>
     <p class="body-text">
-        Base VLA versus context-smoothed VLA, side by side. The learning curve below traces the full RL training run.
+        Base &pi;<sub>0</sub> versus context-smoothed &pi;<sub>0</sub>, side by side. The learning curve below traces the full RL training run.
     </p>
 
     <div class="rw-tabs">
@@ -1572,11 +1572,11 @@
 
     <div class="rollout-grid">
         <div class="rollout-col">
-            <div class="rollout-col-title">Base VLA</div>
+            <div class="rollout-col-title">Base &pi;<sub>0</sub></div>
             <div id="rw-pi0-grid" class="rollout-vid-grid"></div>
         </div>
         <div class="rollout-col emerald-col">
-            <div class="rollout-col-title">Context-Smoothed VLA <em>(ours)</em></div>
+            <div class="rollout-col-title">Context-Smoothed &pi;<sub>0</sub> <em>(ours)</em></div>
             <div id="rw-csp-grid" class="rollout-vid-grid"></div>
         </div>
     </div>
