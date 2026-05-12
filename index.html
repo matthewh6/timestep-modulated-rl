@@ -3,8 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TMRL: Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning</title>
+    <title>TMRL: Diffusion Timestep-Modulated Pre-training Enables Exploration for Efficient Policy Fine-tuning</title>
     <meta name="description" content="TMRL bridges BC pre-training and RL fine-tuning, enabling real-world reinforcement learning in under one hour.">
+
+    <link rel="preload" as="image" href="static/figures/teaser_poster.jpg" fetchpriority="high">
+    <link rel="preload" as="video" href="static/videos/website_teaser_short.mp4" type="video/mp4" fetchpriority="high">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500;1,9..144,700;1,9..144,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
@@ -268,49 +273,22 @@
             .hero-subtitle { white-space: normal; font-size: clamp(1.05rem, 3vw, 1.4rem); max-width: 880px; }
         }
         .hero-tagline {
-            position: absolute;
-            top: 60px;
-            right: 0;
-            max-width: 260px;
-            padding: 11px 18px 12px;
-            background: var(--panel);
-            border: 1px solid var(--rule-soft);
-            border-left: 3px solid var(--em);
-            box-shadow: var(--sh-soft);
-            border-radius: 0 8px 8px 0;
+            display: block;
+            max-width: 880px;
+            padding: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
             font-family: 'Fraunces', serif;
             font-variation-settings: 'opsz' 36;
             font-style: italic;
-            font-weight: 500;
-            font-size: 0.96rem;
-            line-height: 1.4;
-            color: var(--ink);
-            margin: 0;
-            z-index: 5;
+            font-weight: 400;
+            font-size: clamp(1rem, 1.7vw, 1.2rem);
+            line-height: 1.45;
+            color: var(--ink-soft);
+            margin: 12px 0 26px;
         }
-        @media (max-width: 920px) {
-            .hero-tagline {
-                position: static;
-                max-width: 760px;
-                margin: 4px 0 16px;
-                font-size: clamp(0.95rem, 1.65vw, 1.12rem);
-            }
-        }
-        .hero-tagline::before {
-            content: "note";
-            position: absolute;
-            top: -8px;
-            left: 12px;
-            background: var(--bg);
-            padding: 0 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-style: normal;
-            font-weight: 700;
-            font-size: 0.62rem;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--walnut);
-        }
+        .hero-tagline strong { color: var(--em); font-weight: 700; font-style: italic; }
         .hero-tagline em { color: var(--em); font-style: italic; font-weight: 700; }
         .hero-authors {
             font-family: 'JetBrains Mono', monospace;
@@ -606,7 +584,6 @@
             background: linear-gradient(170deg, var(--em-deep) 0%, #143425 100%);
             color: #e3ece6;
             border: 1px solid var(--rule);
-            border-top: 2px solid var(--walnut-soft);
             border-radius: 16px;
             padding: 26px 28px;
             box-shadow: var(--sh-emerald);
@@ -701,8 +678,43 @@
         .card-grid { display: grid; gap: 18px; margin: 18px 0; }
         .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
         .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .card-grid-tldr {
+            grid-template-columns: 1.5fr 1fr;
+            gap: 16px;
+        }
+        .card-grid-tldr > .emerald-card-wide {
+            padding: 28px 32px;
+        }
+        .card-grid-tldr .card-title {
+            font-size: 1.16rem;
+        }
+        .card-grid-tldr .emerald-card-wide .card-title {
+            font-size: 1.36rem;
+        }
+        .card-formula {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(141, 181, 155, 0.18);
+            font-family: 'Fraunces', serif;
+            font-style: italic;
+            font-size: 1.06rem;
+            color: var(--em-glow);
+            letter-spacing: 0.01em;
+        }
+        .card-formula .formula-legend {
+            display: block;
+            margin-top: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-style: normal;
+            font-size: 0.72rem;
+            color: rgba(227, 236, 230, 0.55);
+            letter-spacing: 0.04em;
+            line-height: 1.5;
+        }
         @media (max-width: 760px) {
             .card-grid-3, .card-grid-2 { grid-template-columns: 1fr; }
+            .card-grid-tldr { grid-template-columns: 1fr; }
+            .card-grid-tldr > .emerald-card-wide { grid-column: 1; padding: 24px 26px; }
         }
 
         /* RESULT CALLOUT (concrete plane with wood accent) */
@@ -721,14 +733,14 @@
         }
         .result-callout::before { display: none; }
         .result-callout .big {
-            font-family: 'Fraunces', serif;
-            font-variation-settings: 'opsz' 144;
-            font-size: 2.8rem;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+            font-feature-settings: 'tnum' 1, 'ss01' 1;
+            font-size: 2.5rem;
             font-weight: 700;
             color: var(--em);
             line-height: 1;
             white-space: nowrap;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.04em;
         }
         .result-callout .desc {
             font-family: 'Fraunces', serif;
@@ -740,7 +752,7 @@
         }
         .result-callout .desc strong { color: var(--ink); }
         .result-callout.xl-callout { padding: 26px 30px; }
-        .result-callout.xl-callout .big { font-size: 3.4rem; }
+        .result-callout.xl-callout .big { font-size: 3rem; }
 
         /* TABS — square-edged signage */
         .tab-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
@@ -1294,16 +1306,12 @@
 <!-- ════════════════ HERO ════════════════ -->
 <header class="hero">
     <h1 class="hero-brand">TMRL</h1>
-    <p class="hero-subtitle">Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning</p>
-
-    <!-- <p class="hero-tagline">
-        Real-world reinforcement learning with a VLA &mdash; in under one hour.
-    </p> -->
+    <p class="hero-subtitle">Diffusion Timestep-Modulated Pre-training Enables Exploration for Efficient Policy Fine-tuning</p>
 
     <div class="hero-authors">
         <a href="https://matthewh6.github.io/" target="_blank">Matthew M Hong</a><sup>1</sup>&nbsp;&nbsp;&nbsp;
         <a href="https://www.jessezhang.net/" target="_blank">Jesse Zhang</a><sup>1</sup>&nbsp;&nbsp;&nbsp;
-        <a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en/" target="_blank">Anusha Nagabandi</a><sup>2</sup>&nbsp;&nbsp;&nbsp;
+        <a href="https://scholar.google.com/citations?user=DkUUhXEAAAAJ&hl=en" target="_blank">Anusha Nagabandi</a><sup>2</sup>&nbsp;&nbsp;&nbsp;
         <a href="https://abhishekunique.github.io/" target="_blank">Abhishek Gupta</a><sup>1</sup>
         <span class="affil"><sup>1</sup>University of Washington&nbsp;&nbsp;&nbsp;&nbsp;<sup>2</sup>Amazon FAR</span>
     </div>
@@ -1312,7 +1320,7 @@
 
     <!-- TEASER POLAROID -->
     <figure class="polaroid teaser-polaroid">
-        <video id="hero-teaser-video" autoplay loop muted playsinline>
+        <video id="hero-teaser-video" autoplay loop muted playsinline preload="auto" fetchpriority="high" poster="static/figures/teaser_poster.jpg">
             <source src="static/videos/website_teaser_short.mp4" type="video/mp4">
         </video>
     </figure>
@@ -1332,26 +1340,15 @@
         <p class="sec-lead tldr-lead">A unified framework bridging behavior-cloning pre-training and reinforcement-learning fine-tuning.</p>
     </header>
 
-    <div class="card-grid card-grid-3">
-        <article class="emerald-card">
-            <span class="card-icon" aria-hidden="true">↓</span>
-            <h3 class="card-tag">Problem</h3>
-            <h4 class="card-title">BC&rsquo;s coverage is too narrow for RL</h4>
-            <p>BC produces narrow action distributions that lack the coverage RL needs for exploration. In out-of-distribution contexts the conditional collapses, rollouts yield no reward signal, and fine-tuning stalls.</p>
+    <div class="card-grid card-grid-tldr">
+        <article class="emerald-card emerald-card-wide">
+            <h4 class="card-title">Our method</h4>
+            <p><strong>Context-Smoothed Pre-training (CSP)</strong> applies a diffusion-style forward-noising schedule to policy <em>inputs</em>, producing a continuous spectrum from precise imitation to broad coverage. <strong>Timestep-Modulated RL (TMRL)</strong> then trains a high-level policy &pi;<sub>HL</sub>(<i>z</i>,&thinsp;σ&thinsp;|&thinsp;<i>s</i>) to select σ per action chunk.</p>
         </article>
 
         <article class="emerald-card">
-            <span class="card-icon" aria-hidden="true">⇌</span>
-            <h3 class="card-tag">Approach</h3>
-            <h4 class="card-title">Context Smoothing + Timestep Modulation</h4>
-            <p><strong>Context-Smoothed Pre-training (CSP)</strong> applies a diffusion-style forward-noising schedule to policy inputs &mdash; producing a continuous spectrum from precise imitation to broad coverage. <strong>Timestep-Modulated RL (TMRL)</strong> then trains an RL agent to dynamically adjust this conditioning strength per step.</p>
-        </article>
-
-        <article class="emerald-card">
-            <span class="card-icon" aria-hidden="true">◷</span>
-            <h3 class="card-tag">Result</h3>
-            <h4 class="card-title">Real-world fine-tuning in &lt;&thinsp;1 hr</h4>
-            <p>Works with arbitrary policy inputs &mdash; states, 3D point clouds, image-based VLAs. Real-world fine-tuning on complex manipulation in under an hour.</p>
+            <h4 class="card-title">Results</h4>
+            <p>Real-world fine-tuning of &pi;<sub>0</sub> to near-perfect success on three robot tasks: <strong>under an hour on WidowX</strong>, under four on Franka. Outperforming state-of-the-art baselines in simulation.</p>
         </article>
     </div>
 </section>
@@ -1365,14 +1362,16 @@
     </header>
 
     <p class="body-text">
-        Robots trained by imitation copy demonstrations narrowly &mdash; BC is overfit to observed data, so in sparsely covered contexts its conditional support collapses and assigns near-zero probability to optimal actions. Online rollouts yield no reward signal, and RL fine-tuning stalls. <strong>We instead inject forward-diffusion noise into policy inputs at pre-training, smoothly interpolating between the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) and marginal <em>p</em>(<i>a</i>) action distributions &mdash; broadening action coverage so RL can find improvements beyond the demonstrations.</strong>
+        Robots trained by imitation copy demonstrations narrowly &mdash; in sparsely covered contexts the conditional support collapses to near-zero probability on optimal actions, so online rollouts yield no reward signal and RL fine-tuning stalls. <strong>We propose to inject forward-diffusion noise into policy inputs at pre-training, smoothly interpolating between the conditional <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) and marginal <em>p</em>(<i>a</i>) action distributions &mdash; broadening action coverage so RL can find solutions beyond the demonstrations.</strong>
     </p>
 
     <p class="body-text">
         On a 2D pointmaze from <a href="https://seohong.me/projects/ogbench/" target="_blank">OGBench</a>, we train two policies &mdash; one approximating <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), the other <em>p</em>(<i>a</i>) &mdash; where <i>c</i> is the goal position. Both train on <code>pointmaze-large</code> and evaluate on the larger <code>pointmaze-giant</code> environment, with an unseen goal location (<strong style="color:#c08800;">agent in yellow</strong>, <strong style="color:#c44b66;">goal in pink</strong>).
     </p>
 
-    <div class="polaroid-row">
+    <p class="cap" style="margin: 18px 0 0; text-align:left;">Watch the OOD goal: <em>left,</em> <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) collapses and drifts away. <em>Right,</em> <em>p</em>(<i>a</i>) covers broadly enough to reach.</p>
+
+    <div class="polaroid-row" style="margin-top: 6px;">
         <figure class="polaroid">
             <video class="static-vid" autoplay loop muted playsinline>
                 <source src="static/videos/bc_pointmaze.mp4" type="video/mp4">
@@ -1386,8 +1385,6 @@
             <figcaption><strong>p(a) · CSP, σ&thinsp;=&thinsp;T</strong></figcaption>
         </figure>
     </div>
-
-    <p class="cap" style="margin-top:14px;">OOD goal &mdash; <em>left:</em> <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>) collapses and drifts away. <em>Right:</em> <em>p</em>(<i>a</i>) covers broadly enough to reach.</p>
 
     <blockquote class="pull-quote">
         The conditional collapses on optimal actions; the marginal covers them only with low likelihood. Thus motivating a policy that can <em>interpolate</em> between the two &mdash; and a mechanism to learn <em>where</em> on that interpolation to operate.
@@ -1453,6 +1450,7 @@
     <p class="body-text">
         <strong>CSP</strong> trains one policy across all &sigma; by corrupting the context <i>c</i> with <em>q<sub>σ</sub></em>(<span style="text-decoration:overline">c</span>&thinsp;|&thinsp;<i>c</i>). The endpoints anchor the spectrum: &sigma;&thinsp;=&thinsp;0 recovers <em>p</em>(<i>a</i>&thinsp;|&thinsp;<i>c</i>), &sigma;&thinsp;=&thinsp;<em>T</em> recovers <em>p</em>(<i>a</i>).</strong>
     </p>
+    <p class="cap" style="text-align:left; margin: 14px 0 0;">Drag &sigma; below to see how the policy&rsquo;s rollouts spread as the context input is more aggressively noised.</p>
 
     <div id="sweep-tabs" class="tab-row" style="margin-top:24px;"></div>
     <code id="sweep-instruction" class="instruction-box" style="display:none;"></code>
@@ -1505,17 +1503,6 @@
         We compare against several state-of-the-art baselines. TMRL outperforms or matches all baselines across four simulation tasks.
     </p>
 
-    <div class="result-callout-row">
-        <div class="result-callout">
-            <div class="big">+14%</div>
-            <div class="desc">over best baseline on <code>pointmaze-giant</code></div>
-        </div>
-        <div class="result-callout">
-            <div class="big">+200%</div>
-            <div class="desc">over best baseline on <code>cube-single</code></div>
-        </div>
-    </div>
-
     <figure class="polaroid wide-polaroid">
         <a href="#" data-lb="static/figures/sim_results.png">
             <img src="static/figures/sim_results.png" alt="Simulation RL results">
@@ -1535,7 +1522,7 @@
     <div class="result-callout xl-callout">
         <div class="big">&lt;&thinsp;1 hr</div>
         <div class="desc">
-            <strong>Near-perfect success</strong> on two WidowX tasks (<code>sausage-in-pot</code>, <code>shrimp-in-drawer</code>) in under an hour of real-robot fine-tuning. DSRL stays near zero on both.
+            DSRL never converges on either WidowX task. TMRL reaches near-perfect success in under an hour of real-robot fine-tuning on both (<code>sausage-in-pot</code>, <code>shrimp-in-drawer</code>).
         </div>
     </div>
 
@@ -1596,7 +1583,7 @@
 <section class="page-section fade-in" id="sec-qualitative">
     <header class="sec-head">
         <span class="sigma-rule"></span>
-        <h2 class="sec-title">What Does TMRL Learn?</h2>
+        <h2 class="sec-title">TMRL learns to be precise when it matters.</h2>
     </header>
 
     <p class="body-text">
@@ -1634,7 +1621,7 @@
     <div class="bibtex-wrap">
         <button class="bibtex-copy" id="bibtex-copy" type="button">Copy</button>
         <pre class="bibtex-box" id="bibtex-text">@inproceedings{hong2026tmrl,
-    title  = {TMRL: Diffusion Timestep-Modulated Pretraining Enables Exploration for Efficient Policy Finetuning},
+    title  = {TMRL: Diffusion Timestep-Modulated Pre-training Enables Exploration for Efficient Policy Fine-tuning},
     author = {Hong, Matthew M. and Zhang, Jesse and Nagabandi, Anusha and Gupta, Abhishek},
     booktitle = {Robotics: Science and Systems (RSS)},
     year   = {2026}
@@ -1646,9 +1633,9 @@
 
 <!-- ════════════════ FOOTER ════════════════ -->
 <footer>
-    Inspired by
+    Site design inspired by
     <a href="https://polaris-evals.github.io/" target="_blank">PolaRiS</a> and
-    <a href="https://www.videomimic.net/" target="_blank">VideoMimic</a> 
+    <a href="https://www.videomimic.net/" target="_blank">VideoMimic</a>.
 </footer>
 
 <!-- ════════════════ FULL VIDEO LIGHTBOX ════════════════ -->
@@ -2110,11 +2097,45 @@ document.addEventListener('DOMContentLoaded',function(){
     });
 }());
 
+// Lazy-load offscreen videos so they don't fight the hero for bandwidth
+(function(){
+    var hero = document.getElementById('hero-teaser-video');
+    var vids = Array.prototype.slice.call(document.querySelectorAll('video'))
+        .filter(function(v){ return v !== hero; });
+    vids.forEach(function(v){
+        if(!v.hasAttribute('data-no-defer')){
+            v.preload = 'none';
+            if(v.hasAttribute('autoplay')){ v.dataset.autoplay = '1'; v.removeAttribute('autoplay'); }
+        }
+    });
+    if(!('IntersectionObserver' in window)){
+        vids.forEach(function(v){ v.preload='auto'; v.load(); if(v.dataset.autoplay) v.play().catch(function(){}); });
+        return;
+    }
+    var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+            if(!e.isIntersecting) return;
+            var v = e.target;
+            v.preload = 'auto';
+            try { v.load(); } catch(_){}
+            if(v.dataset.autoplay) v.play().catch(function(){});
+            io.unobserve(v);
+        });
+    }, { rootMargin: '600px 0px' });
+    vids.forEach(function(v){ io.observe(v); });
+})();
+
+// Lazy-load offscreen images
+document.querySelectorAll('img').forEach(function(img){
+    if(!img.hasAttribute('loading')) img.loading = 'lazy';
+    if(!img.hasAttribute('decoding')) img.decoding = 'async';
+});
+
 // Static video fade-in
 document.querySelectorAll('.static-vid').forEach(function(v){
     function show(){ v.classList.add('ready'); }
     if(v.readyState>=2) show();
-    else { v.addEventListener('canplay',show,{once:true}); setTimeout(show,1500); }
+    else { v.addEventListener('canplay',show,{once:true}); setTimeout(show,3000); }
 });
 
 // Scroll fade-in for sections
